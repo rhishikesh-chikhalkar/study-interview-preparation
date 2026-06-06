@@ -10,6 +10,7 @@ dependencies = [
     "uvicorn[standard]",
     "boto3",
     "Flask",
+    "python-dotenv",
 ]
 
 [dependency-groups]

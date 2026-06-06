@@ -2,6 +2,7 @@ import os
 
 import boto3
 import requests
+from boto3.s3.transfer import S3Transfer
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 
@@ -22,6 +23,7 @@ s3_client = boto3.client("s3")
 # --------------------------------------------------------------------------------
 # Method 1: Presigned URLs (Upload & Download)
 # --------------------------------------------------------------------------------
+
 
 def generate_upload_presigned_url(bucket_name, object_name, expiration=3600):
     """Generate a presigned URL for uploading a file"""
@@ -99,6 +101,7 @@ print(f"Download URL: {download_url}")
 # Method 2: Direct boto3 Client Methods (with AWS credentials)
 # --------------------------------------------------------------------------------
 
+
 def upload_file_direct(file_path, bucket_name, object_name):
     """
     Upload a file directly using S3 client
@@ -137,8 +140,6 @@ def download_file_direct(bucket_name, object_name, file_path):
 # --------------------------------------------------------------------------------
 # Method 3: Using S3 Transfer Manager (for large files with progress)
 # --------------------------------------------------------------------------------
-
-from boto3.s3.transfer import S3Transfer
 
 
 def upload_with_transfer(file_path, bucket_name, object_name):
@@ -221,6 +222,7 @@ def download_with_resource(bucket_name, object_name, file_path):
 # --------------------------------------------------------------------------------
 # Method 5: Multi-part Upload (for very large files)
 # --------------------------------------------------------------------------------
+
 
 def multipart_upload(file_path, bucket_name, object_name, part_size=5 * 1024 * 1024):
     """

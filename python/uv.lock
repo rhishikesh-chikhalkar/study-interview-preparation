@@ -929,6 +929,7 @@ dependencies = [
     { name = "httpx" },
     { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pandas", version = "3.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "python-dotenv" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -944,6 +945,7 @@ requires-dist = [
     { name = "flask" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pandas" },
+    { name = "python-dotenv" },
     { name = "uvicorn", extras = ["standard"] },
 ]
 
