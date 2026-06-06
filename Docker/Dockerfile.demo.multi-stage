@@ -1,0 +1,35 @@
+# Stage 1: Builder
+FROM python:3.14-slim-bookworm as builder
+
+WORKDIR /app
+
+# Install uv
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Copy lock file and pyproject.toml
+COPY uv.lock pyproject.toml ./
+
+# Create virtual environment and install dependencies
+RUN /root/.local/bin/uv venv .venv && \
+    /root/.local/bin/uv sync --frozen
+
+# Stage 2: Runtime
+FROM python:3.14-slim-bookworm
+
+WORKDIR /app
+
+# Copy virtual environment from builder
+COPY --from=builder /app/.venv /app/.venv
+
+# Copy application code
+COPY demo.py .
+
+# Set PATH to use venv
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Run demo.py
+CMD ["python", "demo.py"]

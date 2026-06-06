@@ -1,0 +1,16 @@
+[project]
+name = "study-python"
+version = "0.1.0"
+description = "Python study and interview preparation"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "pandas",
+    "httpx>=0.28.1",
+    "uvicorn[standard]",
+    "boto3",
+    "Flask",
+]
+
+[dependency-groups]
+dev = ["mpmath>=1.4.1"]
