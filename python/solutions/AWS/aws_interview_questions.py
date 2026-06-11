@@ -133,8 +133,8 @@ def download_file_direct(bucket_name, object_name, file_path):
 
 
 # Usage Example
-# upload_file_direct('/local/myfile.txt', 'my-bucket', 'uploads/myfile.txt')
-# download_file_direct('my-bucket', 'documents/myfile.txt', '/local/myfile.txt')
+upload_file_direct("/local/myfile.txt", "my-bucket", "uploads/myfile.txt")
+download_file_direct("my-bucket", "documents/myfile.txt", "/local/myfile.txt")
 
 
 # --------------------------------------------------------------------------------

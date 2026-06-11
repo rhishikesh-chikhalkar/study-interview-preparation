@@ -9,8 +9,6 @@ Organized for easy reference and learning.
 # 1. API FRAMEWORKS SETUP
 # --------------------------------------------------------------------------------
 
-from collections import Counter
-
 from fastapi import FastAPI
 from flask import Flask, jsonify
 
@@ -119,6 +117,8 @@ print(f"  Is palindrome (two-pointer): {palindrome_using_two_pointer(sample_text
 # --------------------------------------------------------------------------------
 # Problem 3: Count Character Frequency
 # --------------------------------------------------------------------------------
+
+from collections import Counter
 
 
 def count_char_simple(sample_text):
