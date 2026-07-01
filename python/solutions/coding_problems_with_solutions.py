@@ -11,6 +11,7 @@ Organized for easy reference and learning.
 
 from fastapi import FastAPI
 from flask import Flask, jsonify
+from fastapi import FastAPI, Request, Query
 
 # FastAPI setup
 fastapi_app = FastAPI(title="Demo API", version="1.0")
@@ -30,6 +31,38 @@ flask_app = Flask(__name__)
 def flask_check_health():
     """Flask health check endpoint"""
     return jsonify({"Status": "healthy!"})
+
+pagination_api = FastAPI()
+items = [{"id": i, "name": f"item-{i}"} for i in range(1, 100)]
+
+@pagination_api.get("/items")
+def get_items(
+    request: Request,
+    limit: int = Query(default=10, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+):
+    total = len(items)
+    paginated_items = items[offset : offset + limit]
+
+    base_url = str(request.url).split("?")[0]
+
+    next_url = (
+        f"{base_url}?limit={limit}&offset={offset + limit}"
+        if offset + limit < total
+        else None
+    )
+    prev_url = (
+        f"{base_url}?limit={limit}&offset={max(0, offset - limit)}"
+        if offset > 0
+        else None
+    )
+
+    return {
+        "count": total,
+        "next": next_url,
+        "previous": prev_url,
+        "results": paginated_items,
+    }
 
 
 # --------------------------------------------------------------------------------
