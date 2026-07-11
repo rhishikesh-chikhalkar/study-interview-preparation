@@ -11,7 +11,7 @@ def update_readme():
 
     # 1. Parse the phases and count checkboxes
     # We can split the document by phase headers to isolate each phase's content
-    phase_pattern = re.compile(r"(### [^\n]*Phase (\d+)[^\n]*)")
+    phase_pattern = re.compile(r"(### [^\n]*Phase (-?\d+)[^\n]*)")
     matches = list(phase_pattern.finditer(content))
 
     phase_counts = {}
@@ -64,7 +64,7 @@ def update_readme():
     # Regex to match rows of the roadmap table:
     # e.g., | **Phase 0**  | [CS Fundamentals (DSA)](#-phase-0--computer-science-fundamentals)     | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` |    Week 1-3     |
     table_row_pattern = re.compile(
-        r"^\|\s*\*\*Phase\s+(\d+)\*\*\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|",
+        r"^\|\s*\*\*Phase\s+(-?\d+)\*\*\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|",
         re.MULTILINE
     )
 
