@@ -1,0 +1,6 @@
+{
+    "snyk.advanced.autoSelectOrganization": true,
+    "docker.ignoreVulnerabilities": true,
+    "docker.showVulnerabilityWarnings": false,
+    "python.defaultInterpreterPath": "${workspaceFolder}/python/.venv/bin/python",
+}

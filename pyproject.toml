@@ -12,6 +12,7 @@ dependencies = [
     "Flask",
     "python-dotenv",
     "sqlfluff",
+    "pymongo==4.17.0",
 ]
 
 [dependency-groups]
