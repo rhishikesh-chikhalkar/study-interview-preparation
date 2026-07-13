@@ -13,6 +13,13 @@ dependencies = [
     "python-dotenv",
     "sqlfluff",
     "pymongo==4.17.0",
+    "sqlalchemy>=2.0.51",
+    "pyjwt>=2.13.0",
+    "langchain>=1.3.13",
+    "langchain-openai>=1.3.5",
+    "langchain-community>=0.4.2",
+    "faiss-cpu>=1.14.3",
+    "pypdf>=6.14.2",
 ]
 
 [dependency-groups]

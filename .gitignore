@@ -1,6 +1,7 @@
 # OS files
 **/.DS_Store
 **/._*
+_tmp
 
 # IDEs and editors
 .idea/
