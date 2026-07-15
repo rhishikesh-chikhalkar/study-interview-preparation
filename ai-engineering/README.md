@@ -6,6 +6,7 @@ This directory contains code implementations, experiments, and projects related 
 
 - [agents/](./agents/) — AI Agentic workflows, tool use, and multi-agent systems.
   - [langchain_demo.py](./agents/langchain_demo.py) — RAG & SQL database LangChain agent demonstration.
+  - [langchain_ollama_demo.py](./agents/langchain_ollama_demo.py) — Local LLM integration using LangChain and Ollama.
 - `rag/` — Retrieval-Augmented Generation architectures (Chunking, vector DBs, retrieval optimization).
 - `prompts/` — Advanced prompt engineering techniques.
 - `evaluation/` — LLM evaluation frameworks.
