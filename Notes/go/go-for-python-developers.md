@@ -167,3 +167,50 @@ In Go, certain words are strictly reserved and **cannot** be used as identifiers
 
 * For example, **`go`** is a reserved keyword (used to launch goroutines). Writing `package go` at the top of a file will fail compilation with `expected 'IDENT', found 'go'`. Use `package main` for executable scripts instead.
 
+---
+
+## 7. Building a Web Server (`net/http`)
+
+For web servers, Go's standard library `net/http` replaces the need for a micro-framework like Flask or FastAPI for basic applications.
+
+### A. Code Comparison: Go vs. Python (Flask)
+
+| Go (`net/http`) | Python (`Flask`) | Notes |
+| :--- | :--- | :--- |
+| `func hello(w http.ResponseWriter, r *http.Request)` | `def hello(): return "Hello"` | Go passes response and request objects directly into the handler function. |
+| `fmt.Fprint(w, "Hello")` | `return "Hello"` | In Go, you write directly to the connection writer stream `w`. |
+| `http.HandleFunc("/route", hello)` | `@app.route("/route")` | Map paths to handlers. |
+| `http.ListenAndServe(":8080", nil)` | `app.run(port=8080)` | Starts the HTTP server on port 8080. |
+
+### B. Standard Go Conventions
+
+1. **Short Variable Names (`w` and `r`)**:
+   Unlike Python's preference for descriptive names (e.g., `request`, `response`), Go developers idiomatically use `w` for `http.ResponseWriter` and `r` for `*http.Request` in handler functions.
+2. **Wildcard Routing**:
+   A path like `"/"` acts as a subtree wildcard in Go. It catches any route that doesn't match a more specific pattern (e.g., hitting `/foo` will run the `/` handler).
+   * *Go 1.22+ tip*: You can restrict a route to match *only* the root using `http.HandleFunc("GET /{$}", helloHandler)`.
+
+### C. Advanced Concepts for Production
+
+When you are ready to transition your server to production, keep these Go-specific features in mind:
+
+1. **Concurrency and State Safety**:
+   * **Go**: Handles every incoming HTTP request on its own lightweight thread (**goroutine**). 
+   * **Python**: Typically relies on a single-threaded GIL and uses async or worker processes.
+   * **Warning**: Because Go handlers run concurrently, reading/writing to shared state (like a standard Python-like `dict` / Go `map`) at the same time will cause a fatal runtime crash. Guard shared variables using synchronizers like `sync.Mutex`.
+
+2. **Server Timeouts**:
+   The default helper `http.ListenAndServe()` does not set timeouts, which makes the server vulnerable to connection-hanging attacks (e.g., Slowloris). Always use a custom `http.Server` configuration in production:
+   ```go
+   server := &http.Server{
+       Addr:         ":8080",
+       ReadTimeout:  5 * time.Second,
+       WriteTimeout: 10 * time.Second,
+   }
+   server.ListenAndServe()
+   ```
+
+3. **Graceful Shutdown**:
+   When a Go server is terminated, it stops abruptly by default. In production, intercept OS signals (like `SIGTERM`) and call `server.Shutdown(ctx)` so that active requests can finish processing cleanly before the process exits.
+
+
