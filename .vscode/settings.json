@@ -2,5 +2,11 @@
     "snyk.advanced.autoSelectOrganization": true,
     "docker.ignoreVulnerabilities": true,
     "docker.showVulnerabilityWarnings": false,
-    "python.defaultInterpreterPath": "${workspaceFolder}/python/.venv/bin/python",
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "python.languageServer": "Pylance",
+    "python.analysis.autoSearchPaths": true,
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}"
+    ],
+    "editor.semanticHighlighting.enabled": true
 }
