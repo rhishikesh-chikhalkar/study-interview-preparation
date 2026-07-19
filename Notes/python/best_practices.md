@@ -226,4 +226,69 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+---
+
+## 9. Resource Management: Context Managers & Try-Finally Pitfalls
+
+Properly releasing resources (files, sockets, locks) is crucial, even when exceptions occur. While the `with` statement is the most elegant way to handle cleanup, there are advanced patterns and critical pitfalls to keep in mind.
+
+### A. Custom Context Managers
+You can implement custom context managers in two ways:
+1. **Class-based**: Define `__enter__` and `__exit__` methods.
+2. **Generator-based**: Use the `@contextmanager` decorator from `contextlib`.
+
+```python
+from contextlib import contextmanager
+
+@contextmanager
+def temp_resource():
+    resource = acquire_resource()
+    try:
+        yield resource
+    finally:
+        release_resource(resource)
+```
+
+### B. Suppressing Exceptions in `__exit__`
+Most context managers propagate exceptions. However, you can suppress exceptions by returning `True` (or a truthy value) from `__exit__`.
+
+```python
+class SuppressValueError:
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Return True to suppress ValueError; other exceptions will propagate
+        return exc_type is ValueError
+```
+
+### C. Context Managers for Temporary State
+Beyond cleanup, context managers are excellent for managing temporary states (e.g., database transactions or local thread contexts). For instance, the `decimal` module uses `localcontext` for high-precision calculations:
+
+```python
+import decimal
+
+with decimal.localcontext() as ctx:
+    ctx.prec = 50  # Sets high precision temporarily
+    # Perform calculations...
+```
+
+### D. Critical Limitations & Pitfalls
+
+> [!WARNING]
+> **Never use `return`, `break`, or `continue` inside `finally` blocks.**
+> Doing so will discard any pending exceptions that occurred inside the `try` block, potentially masking critical bugs.
+
+```python
+# 🚫 Bad Practice
+def retrieve_data():
+    try:
+        raise ValueError("Critical error!")
+    finally:
+        return "Suppressed!"  # The ValueError is silently discarded!
+```
+
+* **No Cleanup Guarantees on Sudden Termination**: Context manager cleanups and `finally` blocks are not guaranteed to run if the process is terminated abruptly (e.g., via `os._exit()` or an OS-level `SIGKILL`).
+* **Interrupt Race Conditions**: Although rare, asynchronous interrupts (like `KeyboardInterrupt`) can occur between operations in `try-finally` blocks. Built-in locks implemented in C generally avoid this since they handle locking atomically.
 ```
