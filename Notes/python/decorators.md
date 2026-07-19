@@ -318,7 +318,13 @@ print(my_func.__name__)   # Output: my_func (CORRECT!)
 print(my_func.__doc__)    # Output: My docstring (CORRECT!)
 ```
 
+> [!TIP]
+> For a real-world example of using `@functools.wraps` within a parameterized decorator (decorator with arguments), check out the implementation in [retry_decorator.py](file:///Users/rhishikesh/GITHUB/study-interview-preparation/python/retry_decorator.py).
+> 
+> Without `@functools.wraps(my_func)` on the inner wrapper in that example, running `print(my_function.__name__)` would output `"wrapper"` instead of `"my_function"`.
+
 ### 7. Stacking Multiple Decorators
+
 
 ```python
 import time
