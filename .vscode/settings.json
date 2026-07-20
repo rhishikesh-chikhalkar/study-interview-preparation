@@ -10,6 +10,11 @@
         "${workspaceFolder}"
     ],
     "python.analysis.autoImportCompletions": true,
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true
+    },
     // ── Go ──────────────────────────────────────────────
     "go.useLanguageServer": true,
     "go.goroot": "/usr/local/go",
@@ -25,5 +30,5 @@
     "editor.gotoLocation.multipleDefinitions": "goto",
     "editor.gotoLocation.multipleDeclarations": "goto",
     "editor.gotoLocation.multipleImplementations": "goto",
-    "editor.gotoLocation.multipleReferences": "goto"
+    "editor.gotoLocation.multipleReferences": "goto",
 }
