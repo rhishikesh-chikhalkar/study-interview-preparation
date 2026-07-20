@@ -32,8 +32,10 @@ def flask_check_health():
     """Flask health check endpoint"""
     return jsonify({"Status": "healthy!"})
 
+
 pagination_api = FastAPI()
 items = [{"id": i, "name": f"item-{i}"} for i in range(1, 100)]
+
 
 @pagination_api.get("/items")
 def get_items(

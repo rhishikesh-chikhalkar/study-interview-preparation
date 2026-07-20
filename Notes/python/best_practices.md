@@ -291,4 +291,102 @@ def retrieve_data():
 
 * **No Cleanup Guarantees on Sudden Termination**: Context manager cleanups and `finally` blocks are not guaranteed to run if the process is terminated abruptly (e.g., via `os._exit()` or an OS-level `SIGKILL`).
 * **Interrupt Race Conditions**: Although rare, asynchronous interrupts (like `KeyboardInterrupt`) can occur between operations in `try-finally` blocks. Built-in locks implemented in C generally avoid this since they handle locking atomically.
+
+---
+
+## 10. Testing Best Practices
+
+Writing clear, independent, and well-asserted tests is essential for maintaining a reliable test suite. Avoid common beginner test design and assertion mistakes.
+
+### A. Avoid Assertions That Always Pass
+Always verify that your assertions actually check the correctness of the code under test, rather than comparing a variable to itself or checking trivial truths.
+
+#### 🚫 Bad Practice
+Comparing a result to itself passes even if the function returns `None` or an incorrect value.
+```python
+def test_pop(self):
+    self.stack.push(5)
+    result = self.stack.pop()
+    self.assertEqual(result, result)  # 🚫 Comparing result to itself!
+```
+
+#### ✅ Best Practice
+Compare the result to the expected hardcoded or predefined value.
+```python
+def test_pop(self):
+    self.stack.push(5)
+    result = self.stack.pop()
+    self.assertEqual(result, 5)  # ✅ Comparing with expected value
+```
+
+### B. One Behavior Per Test (Avoid Unrelated Assertions)
+Do not test multiple unrelated features or state transitions in a single test case. If an early assertion fails, subsequent assertions are not executed, making it hard to diagnose the root cause.
+
+#### 🚫 Bad Practice
+Testing pushes, sizes, pops, and empty status all in one monolithic test.
+```python
+def test_stack(self):
+    self.stack.push(1)
+    self.stack.push(2)
+    self.assertEqual(self.stack.size(), 2)
+    self.assertEqual(self.stack.pop(), 2)
+    self.assertEqual(self.stack.size(), 1)
+    self.assertEqual(self.stack.pop(), 1)
+    self.assertTrue(self.stack.is_empty())
+```
+
+#### ✅ Best Practice
+Write isolated, descriptive tests for each distinct behavior.
+```python
+def test_size_after_two_pushes(self):
+    self.stack.push(1)
+    self.stack.push(2)
+    self.assertEqual(self.stack.size(), 2)
+
+def test_pop_returns_correct_value(self):
+    self.stack.push(1)
+    self.stack.push(2)
+    self.assertEqual(self.stack.pop(), 2)
+```
+
+### C. Do Not Put Test-Specific State in `setUp`
+The `setUp()` method should create a clean, basic environment. Avoid pre-filling objects or initializing state that isn't required by all tests.
+
+#### 🚫 Bad Practice
+Pre-filling data in `setUp()` that only a few tests actually need.
+```python
+def setUp(self):
+    self.stack = Stack()
+    self.stack.push(99)  # 🚫 Why? Not every test needs a pre-filled stack
+```
+
+#### ✅ Best Practice
+Initialize a clean object in `setUp()`, and let individual tests set up their own specific state.
+```python
+def setUp(self):
+    self.stack = Stack()
+
+def test_pop_after_push(self):
+    self.stack.push(99)  # ✅ Set up exactly what THIS test needs
+    self.assertEqual(self.stack.pop(), 99)
+```
+
+### D. Use Self-Documenting Test Names
+Good test names should act as self-documenting failure messages in CI/CD logs. Follow a naming convention like `test_<method/scenario>_<condition>_<expected_result>`.
+
+#### 🚫 Bad Practice
+Vague or non-descriptive test names.
+```python
+def test_1(self): ...
+def test_stack_works(self): ...
+def test_pop(self): ...
+```
+
+#### ✅ Best Practice
+Expressive names that state precisely what condition is being tested and what result is expected.
+```python
+def test_pop_returns_last_pushed_item(self): ...
+def test_pop_on_empty_stack_raises_index_error(self): ...
+def test_size_is_zero_on_new_stack(self): ...
+def test_peek_does_not_change_size(self): ...
 ```

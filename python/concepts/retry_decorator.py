@@ -8,6 +8,7 @@ import time
 
 def retry(retry_count, retry_interval):
     """Decorator to retry a function call on failure."""
+
     def decorator(my_func):
         @functools.wraps(my_func)
         def wrapper(*args, **kwargs):
@@ -27,7 +28,9 @@ def retry(retry_count, retry_interval):
                     if attempt < retry_count:
                         time.sleep(retry_interval)
             raise last_exception
+
         return wrapper
+
     return decorator
 
 
