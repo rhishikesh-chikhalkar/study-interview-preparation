@@ -1,22 +1,25 @@
 import os
 import uuid
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
+
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, jsonify, render_template_string, request
+from langchain_classic.chains import (
+    create_history_aware_retriever,
+    create_retrieval_chain,
+)
+from langchain_classic.chains.combine_documents import create_stuff_documents_chain
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.vectorstores import FAISS
+from langchain_core.chat_history import InMemoryChatMessageHistory
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_ollama import ChatOllama, OllamaEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Load environment variables
 load_dotenv()
-
-from langchain_ollama import ChatOllama, OllamaEmbeddings
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import FAISS
-from langchain_classic.chains import create_history_aware_retriever, create_retrieval_chain
-from langchain_classic.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.chat_history import InMemoryChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
 
 app = Flask(__name__)
 
@@ -101,7 +104,9 @@ def initialize() -> Any:
             ]
         )
         question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
-        rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
+        rag_chain = create_retrieval_chain(
+            history_aware_retriever, question_answer_chain
+        )
 
         # 3. Create session history and wrap in RunnableWithMessageHistory
         chat_history = InMemoryChatMessageHistory()
@@ -125,13 +130,15 @@ def initialize() -> Any:
             "pdf_path": pdf_path_str,
         }
 
-        return jsonify({
-            "status": "success",
-            "message": "Successfully indexed PDF and initialized chatbot session",
-            "session_id": session_id,
-            "pdf_pages": len(pages),
-            "chunks_created": len(chunks)
-        })
+        return jsonify(
+            {
+                "status": "success",
+                "message": "Successfully indexed PDF and initialized chatbot session",
+                "session_id": session_id,
+                "pdf_pages": len(pages),
+                "chunks_created": len(chunks),
+            }
+        )
 
     except Exception as e:
         return jsonify({"error": f"Failed to initialize chatbot: {str(e)}"}), 500
@@ -149,22 +156,18 @@ def chat() -> Any:
         return jsonify({"error": "message is required"}), 400
 
     if session_id not in sessions:
-        return jsonify({"error": f"Session '{session_id}' not found. Please initialize first."}), 404
+        return jsonify(
+            {"error": f"Session '{session_id}' not found. Please initialize first."}
+        ), 404
 
     try:
         session_data = sessions[session_id]
         chain = session_data["chain"]
 
         config = {"configurable": {"session_id": session_id}}
-        response = chain.invoke(
-            {"input": message},
-            config=config
-        )
+        response = chain.invoke({"input": message}, config=config)
 
-        return jsonify({
-            "answer": response.get("answer", ""),
-            "session_id": session_id
-        })
+        return jsonify({"answer": response.get("answer", ""), "session_id": session_id})
 
     except Exception as e:
         return jsonify({"error": f"Failed to generate response: {str(e)}"}), 500
@@ -177,7 +180,7 @@ def swagger_json() -> Any:
         "info": {
             "title": "PDF Chatbot API",
             "version": "1.0.0",
-            "description": "API for PDF Chatbot utilizing LangChain, FAISS, and Ollama"
+            "description": "API for PDF Chatbot utilizing LangChain, FAISS, and Ollama",
         },
         "paths": {
             "/health": {
@@ -191,14 +194,14 @@ def swagger_json() -> Any:
                                     "schema": {
                                         "type": "object",
                                         "properties": {
-                                            "status": { "type": "string" },
-                                            "message": { "type": "string" }
-                                        }
+                                            "status": {"type": "string"},
+                                            "message": {"type": "string"},
+                                        },
                                     }
                                 }
-                            }
+                            },
                         }
-                    }
+                    },
                 }
             },
             "/initialize": {
@@ -212,11 +215,14 @@ def swagger_json() -> Any:
                                     "type": "object",
                                     "required": ["pdf_path"],
                                     "properties": {
-                                        "pdf_path": { "type": "string", "example": "./roadmaps/18-month-full-stack-roadmap.pdf" }
-                                    }
+                                        "pdf_path": {
+                                            "type": "string",
+                                            "example": "./roadmaps/18-month-full-stack-roadmap.pdf",
+                                        }
+                                    },
                                 }
                             }
-                        }
+                        },
                     },
                     "responses": {
                         "200": {
@@ -226,19 +232,19 @@ def swagger_json() -> Any:
                                     "schema": {
                                         "type": "object",
                                         "properties": {
-                                            "status": { "type": "string" },
-                                            "message": { "type": "string" },
-                                            "session_id": { "type": "string" },
-                                            "pdf_pages": { "type": "integer" },
-                                            "chunks_created": { "type": "integer" }
-                                        }
+                                            "status": {"type": "string"},
+                                            "message": {"type": "string"},
+                                            "session_id": {"type": "string"},
+                                            "pdf_pages": {"type": "integer"},
+                                            "chunks_created": {"type": "integer"},
+                                        },
                                     }
                                 }
-                            }
+                            },
                         },
-                        "400": { "description": "Invalid input or file not found" },
-                        "500": { "description": "Internal server error" }
-                    }
+                        "400": {"description": "Invalid input or file not found"},
+                        "500": {"description": "Internal server error"},
+                    },
                 }
             },
             "/chat": {
@@ -252,12 +258,18 @@ def swagger_json() -> Any:
                                     "type": "object",
                                     "required": ["session_id", "message"],
                                     "properties": {
-                                        "session_id": { "type": "string", "example": "41fb439d-d6d6-47f2-9259-05d6df930ef6" },
-                                        "message": { "type": "string", "example": "What is this roadmap about?" }
-                                    }
+                                        "session_id": {
+                                            "type": "string",
+                                            "example": "41fb439d-d6d6-47f2-9259-05d6df930ef6",
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "What is this roadmap about?",
+                                        },
+                                    },
                                 }
                             }
-                        }
+                        },
                     },
                     "responses": {
                         "200": {
@@ -267,20 +279,20 @@ def swagger_json() -> Any:
                                     "schema": {
                                         "type": "object",
                                         "properties": {
-                                            "answer": { "type": "string" },
-                                            "session_id": { "type": "string" }
-                                        }
+                                            "answer": {"type": "string"},
+                                            "session_id": {"type": "string"},
+                                        },
                                     }
                                 }
-                            }
+                            },
                         },
-                        "400": { "description": "Missing session_id or message" },
-                        "404": { "description": "Session not found" },
-                        "500": { "description": "Internal server error" }
-                    }
+                        "400": {"description": "Missing session_id or message"},
+                        "404": {"description": "Session not found"},
+                        "500": {"description": "Internal server error"},
+                    },
                 }
-            }
-        }
+            },
+        },
     }
     return jsonify(spec)
 

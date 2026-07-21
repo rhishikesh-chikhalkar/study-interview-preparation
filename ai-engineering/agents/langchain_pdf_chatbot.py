@@ -2,20 +2,23 @@ import os
 import sys
 from pathlib import Path
 from typing import Dict
+
 from dotenv import load_dotenv
+from langchain_classic.chains import (
+    create_history_aware_retriever,
+    create_retrieval_chain,
+)
+from langchain_classic.chains.combine_documents import create_stuff_documents_chain
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.vectorstores import FAISS
+from langchain_core.chat_history import InMemoryChatMessageHistory
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_ollama import ChatOllama, OllamaEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Load environment variables (contains OPENAI_API_KEY)
 load_dotenv()
-
-from langchain_ollama import ChatOllama, OllamaEmbeddings
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import FAISS
-from langchain_classic.chains import create_history_aware_retriever, create_retrieval_chain
-from langchain_classic.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.chat_history import InMemoryChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
 
 
 def main() -> None:
@@ -30,14 +33,18 @@ def main() -> None:
         if not pdf_path_str:
             print("Path cannot be empty. Please try again.")
             continue
-        
+
         pdf_path = Path(pdf_path_str)
         if not pdf_path.exists():
-            print(f"Error: File does not exist at '{pdf_path_str}'. Please enter a valid path.")
+            print(
+                f"Error: File does not exist at '{pdf_path_str}'. Please enter a valid path."
+            )
             continue
-        
+
         if pdf_path.suffix.lower() != ".pdf":
-            print(f"Error: '{pdf_path_str}' is not a PDF file. Please select a .pdf file.")
+            print(
+                f"Error: '{pdf_path_str}' is not a PDF file. Please select a .pdf file."
+            )
             continue
 
         break
@@ -52,10 +59,7 @@ def main() -> None:
         sys.exit(1)
 
     print("Splitting document into text chunks...")
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200
-    )
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = splitter.split_documents(pages)
     print(f"Created {len(chunks)} chunks from the document.")
 
@@ -139,22 +143,21 @@ def main() -> None:
         try:
             # Capture user input
             user_input = input("You: ")
-            
+
             # Check for exit commands
             if user_input.strip().lower() in ["exit", "quit"]:
                 print("Bot: Goodbye!")
                 break
-                
+
             # Skip empty inputs
             if not user_input.strip():
                 continue
 
             # Invoke the conversational RAG chain
             response = conversational_rag_chain.invoke(
-                {"input": user_input},
-                config=config
+                {"input": user_input}, config=config
             )
-            
+
             # Print response
             print(f"Bot: {response.get('answer', '')}\n")
 

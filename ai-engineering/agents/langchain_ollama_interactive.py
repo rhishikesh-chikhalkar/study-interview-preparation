@@ -1,8 +1,10 @@
 import sys
+
 from langchain_core.chat_history import InMemoryChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_ollama import ChatOllama
+
 
 def main():
     print("Initializing ChatOllama model (qwen3:1.7b)...")
@@ -10,11 +12,13 @@ def main():
     llm = ChatOllama(model="qwen3:1.7b", temperature=0)
 
     # Setup a prompt that has a placeholder for chat history
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a helpful assistant."),
-        MessagesPlaceholder(variable_name="history"),
-        ("human", "{input}"),
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", "You are a helpful assistant."),
+            MessagesPlaceholder(variable_name="history"),
+            ("human", "{input}"),
+        ]
+    )
 
     # Chain the prompt with the chat model
     chain = prompt | llm
@@ -47,25 +51,26 @@ def main():
         try:
             # Capture user input
             user_input = input("You: ")
-            
+
             # Check for exit commands
             if user_input.strip().lower() in ["exit", "quit"]:
                 print("Bot: Goodbye!")
                 break
-                
+
             # Skip empty inputs
             if not user_input.strip():
                 continue
 
             # Invoke the model with message history
             response = with_message_history.invoke({"input": user_input}, config=config)
-            
+
             # Print response
             print(f"Bot: {response.content}\n")
 
         except (KeyboardInterrupt, EOFError):
             print("\nBot: Goodbye!")
             break
+
 
 if __name__ == "__main__":
     main()

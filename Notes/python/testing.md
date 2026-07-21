@@ -128,3 +128,49 @@ To run your test suite:
   uv run pytest tests/test_stack_using_pytest.py -k test_new_stack_is_empty
   ```
 
+---
+
+## Subtests and Parametrization (Looping Test Cases)
+
+When you need to run a series of similar test cases (e.g., testing multiple inputs against the same logic), stopping execution on the first failure is undesirable. Both `unittest` and `pytest` offer ways to continue executing remaining inputs even if one fails.
+
+### 1. `unittest`: `self.subTest()`
+`self.subTest()` is a context manager. If an assertion fails inside the block, `unittest` records the failure but continues executing the remaining iterations of the loop.
+
+```python
+import unittest
+
+class TestNumbers(unittest.TestCase):
+    def test_even_numbers(self):
+        for i in [2, 4, 5, 6, 8]:
+            with self.subTest(i=i):
+                self.assertEqual(i % 2, 0)
+```
+
+### 2. `pytest`: Parametrization (Idiomatic Way)
+Instead of loop-based subtests, `pytest` natively encourages the `@pytest.mark.parametrize` decorator. This generates separate, fully independent test cases at collect-time.
+
+```python
+import pytest
+
+@pytest.mark.parametrize("i", [2, 4, 5, 6, 8])
+def test_even_numbers(i):
+    assert i % 2 == 0
+```
+
+### 3. `pytest`: `pytest-subtests` Plugin (Direct Equivalent)
+If parameters are dynamic (determined at runtime inside a test rather than at collect-time), you can use the official `pytest-subtests` plugin.
+
+Install the plugin:
+```bash
+uv pip install pytest-subtests
+```
+
+Use the `subtests` fixture in your test function:
+```python
+def test_even_numbers(subtests):
+    for i in [2, 4, 5, 6, 8]:
+        with subtests.test(i=i):
+            assert i % 2 == 0
+```
+
