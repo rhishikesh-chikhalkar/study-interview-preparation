@@ -13,12 +13,12 @@ Example 1:
 
 Input: s = "abcabc"
 Output: 10
-Explanation: The substrings containing at least one occurrence of the characters a, b and c are "abc", "abca", "abcab", "abcabc", "bca", "bcab", "bcabc", "cab", "cabc" and "abc" (again). 
+Explanation: The substrings containing at least one occurrence of the characters a, b and c are "abc", "abca", "abcab", "abcabc", "bca", "bcab", "bcabc", "cab", "cabc" and "abc" (again).
 Example 2:
 
 Input: s = "aaacb"
 Output: 3
-Explanation: The substrings containing at least one occurrence of the characters a, b and c are "aaacb", "aacb" and "acb". 
+Explanation: The substrings containing at least one occurrence of the characters a, b and c are "aaacb", "aacb" and "acb".
 Example 3:
 
 Input: s = "abc"
@@ -30,20 +30,21 @@ Constraints:
 s only consists of a, b or c characters.
 """
 
+
 class Solution:
     def numberOfSubstrings(self, s: str) -> int:
         # Initialize counts for 'a', 'b', and 'c'
         count = [0, 0, 0]  # indices 0 for 'a', 1 for 'b', 2 for 'c'
-        
+
         # Initialize pointers and result
         left = 0
         result = 0
-        
+
         # Iterate through the string with the right pointer
         for right in range(len(s)):
             # Increment the count for the current character
-            count[ord(s[right]) - ord('a')] += 1
-            
+            count[ord(s[right]) - ord("a")] += 1
+
             # Check if the current window contains all three characters
             # While the condition is met, shrink the window from the left
             while count[0] > 0 and count[1] > 0 and count[2] > 0:
@@ -51,12 +52,13 @@ class Solution:
                 # starting at 'left' and ending at 'right' or later is also valid.
                 # The number of such substrings is len(s) - right.
                 result += len(s) - right
-                
+
                 # Shrink the window from the left
-                count[ord(s[left]) - ord('a')] -= 1
+                count[ord(s[left]) - ord("a")] -= 1
                 left += 1
-        
+
         return result
+
 
 s = Solution()
 
@@ -80,14 +82,14 @@ print(f"Expected: 1")
 
 # Submitted by Samy Vilar <samy_vilar> on 06/20/2026
 
-# For the sake of simplicity assume 1-indexing, for 
-# each distinct symbol keep track of the last the 
+# For the sake of simplicity assume 1-indexing, for
+# each distinct symbol keep track of the last the
 # occurrence, assuming we initialize all last
 # occurrences to 0, it would suffice to take
-# the minima among all other symbols last 
+# the minima among all other symbols last
 # witnessed;
 
-# In general O(n * log(|alpha|)) time w/ O(|alpha|) 
+# In general O(n * log(|alpha|)) time w/ O(|alpha|)
 # additional-space if we where to use a (ideally a priority)
 # min heap to keep track of said minimas
 # though given our contraints it would suffice
@@ -100,20 +102,17 @@ import numpy
 ids = bytearray(256)
 ids[98:100] = 1, 2
 
+
 def numberOfSubstrings(
-    s: str, ids=bytes(ids),
-    indices=numpy.arange(1, 50_001, dtype=numpy.uint16)
+    s: str, ids=bytes(ids), indices=numpy.arange(1, 50_001, dtype=numpy.uint16)
 ) -> int:
     s = numpy.frombuffer(s.encode().translate(ids), dtype=numpy.uint8)
     places = numpy.zeros((3, s.size + 1), dtype=numpy.uint16)
-    indices = indices[:s.size]
+    indices = indices[: s.size]
     places[s, indices] = indices
-    return numpy.maximum.accumulate(places, axis=1, out=places)\
-        .min(axis=0)\
-        .sum()\
-        .item()    
-    
-    # total = last_a = last_b = last_c = 0    
+    return numpy.maximum.accumulate(places, axis=1, out=places).min(axis=0).sum().item()
+
+    # total = last_a = last_b = last_c = 0
     # for at, ch in enumerate(s, 1):
     #     if ch == 'a':
     #         total += last_b if last_b <= last_c else last_c
@@ -127,6 +126,6 @@ def numberOfSubstrings(
     # return total
 
 
-Solution = repeat(namedtuple('Solution', ('numberOfSubstrings',))(
-    numberOfSubstrings
-)).__next__
+Solution = repeat(
+    namedtuple("Solution", ("numberOfSubstrings",))(numberOfSubstrings)
+).__next__

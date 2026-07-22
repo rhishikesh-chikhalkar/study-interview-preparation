@@ -2,7 +2,7 @@
 # from langchain_ollama import ChatOllama
 # llm = ChatOllama(model="qwen3:1.7b", temperature=0)
 # resp = llm.invoke([{"role": "user", "content": "Hello!"}])
-# print(resp.content) 
+# print(resp.content)
 
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
@@ -13,11 +13,13 @@ from langchain_ollama import ChatOllama
 llm = ChatOllama(model="qwen3:1.7b", temperature=0)
 
 # Setup a prompt that has a placeholder for chat history
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant."),
-    MessagesPlaceholder(variable_name="history"),
-    ("human", "{input}"),
-])
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "You are a helpful assistant."),
+        MessagesPlaceholder(variable_name="history"),
+        ("human", "{input}"),
+    ]
+)
 
 # Chain the prompt with the chat model
 chain = prompt | llm
@@ -25,10 +27,12 @@ chain = prompt | llm
 # Memory store to keep chat history per session_id
 store = {}
 
+
 def get_session_history(session_id: str) -> InMemoryChatMessageHistory:
     if session_id not in store:
         store[session_id] = InMemoryChatMessageHistory()
     return store[session_id]
+
 
 # Wrap the chain with RunnableWithMessageHistory
 with_message_history = RunnableWithMessageHistory(

@@ -42,6 +42,7 @@ nums2.length == n
 Follow up: Can you come up with an algorithm that runs in O(m + n) time?
 """
 
+
 class Solution:
     def merge(self, nums1: list[int], m: int, nums2: list[int], n: int) -> None:
         """
@@ -50,7 +51,7 @@ class Solution:
         p1 = m - 1
         p2 = n - 1
         p = m + n - 1
-        
+
         while p1 >= 0 and p2 >= 0:
             if nums1[p1] > nums2[p2]:
                 nums1[p] = nums1[p1]
@@ -59,7 +60,7 @@ class Solution:
                 nums1[p] = nums2[p2]
                 p2 -= 1
             p -= 1
-            
+
         # Add any remaining elements from nums2
         # (If p1 >= 0, they are already in the correct place in nums1)
         while p2 >= 0:

@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 
+
 def update_readme():
     readme_path = Path("README.md")
     if not readme_path.exists():
@@ -19,7 +20,7 @@ def update_readme():
         phase_num = int(match.group(2))
         start_idx = match.end()
         # The phase content goes until the next phase header or the end of the file
-        end_idx = matches[i+1].start() if i + 1 < len(matches) else len(content)
+        end_idx = matches[i + 1].start() if i + 1 < len(matches) else len(content)
         phase_text = content[start_idx:end_idx]
 
         # Find checkboxes [ ] or [x]/[X]
@@ -33,7 +34,7 @@ def update_readme():
         phase_counts[phase_num] = {
             "total": total_boxes,
             "completed": completed_boxes,
-            "percent": percent
+            "percent": percent,
         }
 
     # 2. Update the Overview & Tracking table rows
@@ -65,7 +66,7 @@ def update_readme():
     # e.g., | **Phase 0**  | [CS Fundamentals (DSA)](#-phase-0--computer-science-fundamentals)     | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` |    Week 1-3     |
     table_row_pattern = re.compile(
         r"^\|\s*\*\*Phase\s+(-?\d+)\*\*\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|",
-        re.MULTILINE
+        re.MULTILINE,
     )
 
     new_content = table_row_pattern.sub(replace_table_row, content)
@@ -74,9 +75,12 @@ def update_readme():
         readme_path.write_text(new_content, encoding="utf-8")
         print("README.md progress updated successfully!")
         for phase, stats in sorted(phase_counts.items()):
-            print(f"  Phase {phase}: {stats['completed']}/{stats['total']} completed ({stats['percent']}%)")
+            print(
+                f"  Phase {phase}: {stats['completed']}/{stats['total']} completed ({stats['percent']}%)"
+            )
     else:
         print("No changes detected in progress levels.")
+
 
 if __name__ == "__main__":
     update_readme()

@@ -18,12 +18,15 @@ import jwt
 # ─────────────────────────────────────────────
 engine = create_engine("postgresql://user:password@localhost/ecommerce")
 
+
 def get_order_details(user_id: int) -> str:
     """Tool function — fetches live order data for a specific user."""
     with engine.connect() as conn:
         result = conn.execute(
-            text("SELECT order_id, status, item, delivery_date FROM orders WHERE user_id = :uid"),
-            {"uid": user_id}
+            text(
+                "SELECT order_id, status, item, delivery_date FROM orders WHERE user_id = :uid"
+            ),
+            {"uid": user_id},
         )
         rows = result.fetchall()
         if not rows:
@@ -34,6 +37,7 @@ def get_order_details(user_id: int) -> str:
             for r in rows
         )
 
+
 # ─────────────────────────────────────────────
 # 2. VECTOR STORE SETUP (runs once at startup)
 # ─────────────────────────────────────────────
@@ -43,13 +47,14 @@ def build_vectorstore() -> FAISS:
     pages = loader.load()
 
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,      # 500 chars per chunk
-        chunk_overlap=50     # overlap so context isn't lost at boundaries
+        chunk_size=500,  # 500 chars per chunk
+        chunk_overlap=50,  # overlap so context isn't lost at boundaries
     )
     chunks = splitter.split_documents(pages)
 
     vectorstore = FAISS.from_documents(chunks, OpenAIEmbeddings())
     return vectorstore
+
 
 vectorstore = build_vectorstore()  # loaded once, reused across requests
 
@@ -59,6 +64,7 @@ vectorstore = build_vectorstore()  # loaded once, reused across requests
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 SECRET_KEY = "your-secret-key"
 
+
 def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
     """Decode JWT and return user_id. Never trust the user to tell you who they are."""
     try:
@@ -66,6 +72,7 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
         return int(payload["user_id"])
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
+
 
 # ─────────────────────────────────────────────
 # 4. BUILD AGENT (per request — memory is per session)
@@ -80,7 +87,7 @@ def build_agent(user_id: int):
         name="get_order_details",
         func=lambda _: get_order_details(user_id),  # user_id locked in
         description="Use this to answer questions about the user's orders, "
-                    "delivery status, or order history. No input needed."
+        "delivery status, or order history. No input needed.",
     )
 
     # Tool 2 — Unstructured static data (Vector search over PDF)
@@ -92,44 +99,46 @@ def build_agent(user_id: int):
         name="search_return_policy",
         func=search_return_policy,
         description="Use this to answer questions about return policies, "
-                    "refunds, warranties, or exchange rules."
+        "refunds, warranties, or exchange rules.",
     )
 
     # Memory — remembers conversation history within this session
-    memory = ConversationBufferMemory(
-        memory_key="chat_history",
-        return_messages=True
-    )
+    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
     agent = initialize_agent(
         tools=[order_tool, policy_tool],
         llm=llm,
         agent=AgentType.OPENAI_FUNCTIONS,
         memory=memory,
-        verbose=True  # logs which tool the agent picks — remove in prod
+        verbose=True,  # logs which tool the agent picks — remove in prod
     )
 
     return agent
+
 
 # ─────────────────────────────────────────────
 # 5. FASTAPI ENDPOINT
 # ─────────────────────────────────────────────
 app = FastAPI()
 
+
 class ChatRequest(BaseModel):
     message: str
+
 
 @app.post("/chat")
 def chat(
     request: ChatRequest,
-    user_id: int = Depends(get_current_user_id)  # auth resolves identity
+    user_id: int = Depends(get_current_user_id),  # auth resolves identity
 ):
     agent = build_agent(user_id)
 
-    response = agent.invoke({
-        "input": request.message
-        # No need to inject user_id into the message —
-        # the order_tool already has it locked in via closure
-    })
+    response = agent.invoke(
+        {
+            "input": request.message
+            # No need to inject user_id into the message —
+            # the order_tool already has it locked in via closure
+        }
+    )
 
     return {"reply": response["output"]}
