@@ -2,8 +2,9 @@ import argparse
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-import pypdf
+
 import chromadb
+import pypdf
 from dotenv import load_dotenv
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from openai import OpenAI
@@ -130,16 +131,24 @@ class RAGPipeline:
                     )
                     embeddings.extend([data.embedding for data in response.data])
                 except Exception as e:
-                    print(f"[Warning] OpenAI batch embedding failed: {e}. Using mock embeddings.")
+                    print(
+                        f"[Warning] OpenAI batch embedding failed: {e}. Using mock embeddings."
+                    )
                     import random
+
                     for text in batch_texts:
                         random.seed(hash(text))
-                        embeddings.extend([[random.uniform(-0.1, 0.1) for _ in range(1536)]])
+                        embeddings.extend(
+                            [[random.uniform(-0.1, 0.1) for _ in range(1536)]]
+                        )
             else:
                 import random
+
                 for text in batch_texts:
                     random.seed(hash(text))
-                    embeddings.extend([[random.uniform(-0.1, 0.1) for _ in range(1536)]])
+                    embeddings.extend(
+                        [[random.uniform(-0.1, 0.1) for _ in range(1536)]]
+                    )
 
         documents = []
         ids = []
@@ -226,8 +235,18 @@ class RAGPipeline:
             )
             return response.choices[0].message.content or ""
         except Exception as e:
-            print(f"[Warning] OpenAI chat completion failed: {e}. Using mock model response.")
-            chunks_summary = "\n".join([f"  * Page {c['metadata'].get('page')}: {c['text'].replace('\n', ' ')[:100]}..." for c in retrieved_chunks])
+            print(
+                f"[Warning] OpenAI chat completion failed: {e}. Using mock model response."
+            )
+            chunks_summary = "\n".join(
+                [
+                    "  * Page {}: {}...".format(
+                        c['metadata'].get('page'),
+                        c['text'].replace('\n', ' ')[:100]
+                    )
+                    for c in retrieved_chunks
+                ]
+            )
             return (
                 f"[Mock Answer - OpenAI API Error: {e}]\n"
                 f"Simulating response for query: '{query}' based on retrieved chunks:\n{chunks_summary}"
