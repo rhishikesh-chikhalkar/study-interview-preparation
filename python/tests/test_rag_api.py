@@ -47,6 +47,7 @@ def test_ask_endpoint_success(mock_pipeline, client):
     mock_pipeline.generate_answer.return_value = (
         "Flask is a micro web framework written in Python."
     )
+    mock_pipeline.get_history.return_value = []
 
     response = client.post("/ask", json={"question": "What is Flask?"})
     assert response.status_code == 200
@@ -58,3 +59,33 @@ def test_ask_endpoint_success(mock_pipeline, client):
         data["retrieved_chunks"][0]["text"]
         == "Flask is a micro web framework written in Python."
     )
+
+
+def test_clear_history_endpoint(client):
+    response = client.post("/clear_history")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["status"] == "success"
+    assert "cleared" in data["message"]
+
+
+@patch("rag_api.pipeline")
+def test_ask_endpoint_with_history(mock_pipeline, client):
+    # Setup mock pipeline history
+    mock_pipeline.query_vector_store.return_value = []
+    mock_pipeline.generate_answer.return_value = "Mock Answer"
+    mock_pipeline.get_history.return_value = [
+        {"role": "user", "content": "Prev Q"},
+        {"role": "assistant", "content": "Prev Ans"}
+    ]
+
+    response = client.post("/ask", json={"question": "New Q"})
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["question"] == "New Q"
+    assert data["answer"] == "Mock Answer"
+    assert "conversation_history" in data
+    assert len(data["conversation_history"]) == 2
+    assert data["conversation_history"][0] == {"role": "user", "content": "Prev Q"}
+    assert data["conversation_history"][1] == {"role": "assistant", "content": "Prev Ans"}
+

@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"time"
 )
 
 func pingHandler(w http.ResponseWriter, r *http.Request) {
@@ -47,13 +49,24 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
+// loggingMiddleware logs the timestamp, method, and URL path of incoming requests.
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("[%s] %s %s", time.Now().Format(time.RFC3339), r.Method, r.URL.Path)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", pingHandler)
 	mux.HandleFunc("/echo", echoHandler)
 
+	wrappedMux := loggingMiddleware(mux)
+
 	fmt.Println("Server is starting on port 8080...")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8080", wrappedMux); err != nil {
 		fmt.Printf("Error starting server: %s\n", err)
 	}
 }
+

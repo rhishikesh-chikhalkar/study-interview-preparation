@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"time"
 )
 
 // getAboutInfo demonstrates a function returning multiple values: a description and a version string.
@@ -19,11 +21,24 @@ func aboutHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "About: %s\nVersion: %s", description, version)
 }
 
+// loggingMiddleware logs the timestamp, method, and URL path of incoming requests.
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("[%s] %s %s", time.Now().Format(time.RFC3339), r.Method, r.URL.Path)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
-	http.HandleFunc("/", helloHandler)
-	http.HandleFunc("/about", aboutHandler)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", helloHandler)
+	mux.HandleFunc("/about", aboutHandler)
+
+	wrappedMux := loggingMiddleware(mux)
+
 	fmt.Println("Server is starting on port 8080...")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", wrappedMux); err != nil {
 		fmt.Printf("Error starting server: %s\n", err)
 	}
 }
+

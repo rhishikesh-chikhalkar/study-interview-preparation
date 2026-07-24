@@ -38,6 +38,24 @@ class RAGPipeline:
         else:
             self.chroma_client = chromadb.EphemeralClient()
 
+        # Conversation history (keeps the last 3 exchanges, where each exchange is a user/assistant pair)
+        self.conversation_history: List[Dict[str, str]] = []
+
+    def clear_history(self) -> None:
+        """Clears the conversation history."""
+        self.conversation_history = []
+
+    def get_history(self) -> List[Dict[str, str]]:
+        """Returns the conversation history."""
+        return self.conversation_history
+
+    def _update_history(self, query: str, answer: str) -> None:
+        """Appends the latest exchange to history and retains only the last 3 exchanges (6 messages)."""
+        self.conversation_history.append({"role": "user", "content": query})
+        self.conversation_history.append({"role": "assistant", "content": answer})
+        if len(self.conversation_history) > 6:
+            self.conversation_history = self.conversation_history[-6:]
+
     def load_pdf(self, pdf_path: str) -> List[Dict[str, Any]]:
         """Loads a PDF file and extracts text page-by-page.
 
@@ -219,21 +237,31 @@ class RAGPipeline:
         )
 
         if not self.openai_client:
-            return (
+            history_summary = ""
+            if self.conversation_history:
+                history_summary = "\nPrevious exchanges:\n" + "\n".join(
+                    [f"- {msg['role'].capitalize()}: {msg['content']}" for msg in self.conversation_history]
+                )
+            answer = (
                 "[Mock Response - OpenAI API Key not configured]\n"
-                f"I would answer your query: '{query}' using the context from {len(retrieved_chunks)} source chunk(s)."
+                f"I would answer your query: '{query}' using the context from {len(retrieved_chunks)} source chunk(s).{history_summary}"
             )
+            self._update_history(query, answer)
+            return answer
+
+        messages = [{"role": "system", "content": system_message}]
+        messages.extend(self.conversation_history)
+        messages.append({"role": "user", "content": query})
 
         try:
             response = self.openai_client.chat.completions.create(
                 model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": system_message},
-                    {"role": "user", "content": query},
-                ],
+                messages=messages,
                 temperature=0.0,
             )
-            return response.choices[0].message.content or ""
+            answer = response.choices[0].message.content or ""
+            self._update_history(query, answer)
+            return answer
         except Exception as e:
             print(
                 f"[Warning] OpenAI chat completion failed: {e}. Using mock model response."
@@ -247,10 +275,17 @@ class RAGPipeline:
                     for c in retrieved_chunks
                 ]
             )
-            return (
+            history_summary = ""
+            if self.conversation_history:
+                history_summary = "\nPrevious exchanges:\n" + "\n".join(
+                    [f"- {msg['role'].capitalize()}: {msg['content']}" for msg in self.conversation_history]
+                )
+            answer = (
                 f"[Mock Answer - OpenAI API Error: {e}]\n"
-                f"Simulating response for query: '{query}' based on retrieved chunks:\n{chunks_summary}"
+                f"Simulating response for query: '{query}' based on retrieved chunks:\n{chunks_summary}{history_summary}"
             )
+            self._update_history(query, answer)
+            return answer
 
 
 def main() -> None:

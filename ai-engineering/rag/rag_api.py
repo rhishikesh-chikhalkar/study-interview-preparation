@@ -95,10 +95,18 @@ def ask() -> Any:
                 "question": question,
                 "answer": answer,
                 "retrieved_chunks": retrieved_chunks,
+                "conversation_history": pipeline.get_history(),
             }
         )
     except Exception as e:
         return jsonify({"error": f"Failed to generate answer: {str(e)}"}), 500
+
+
+@app.route("/clear_history", methods=["POST"])
+def clear_history() -> Any:
+    """Clear the pipeline's conversation history."""
+    pipeline.clear_history()
+    return jsonify({"status": "success", "message": "Conversation history cleared"})
 
 
 if __name__ == "__main__":

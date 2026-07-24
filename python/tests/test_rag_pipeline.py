@@ -109,3 +109,35 @@ def test_generate_answer_mocked(mock_openai_client):
     answer = pipeline.generate_answer("What does OpenAI build?", retrieved_chunks)
     assert answer == "OpenAI builds GPT-4."
     mock_openai_client.chat.completions.create.assert_called_once()
+
+
+def test_conversation_history_retention():
+    pipeline = RAGPipeline()
+    assert pipeline.get_history() == []
+
+    # First exchange
+    chunks = [{"text": "Chunk 1", "metadata": {"source": "doc.pdf", "page": 1}}]
+    ans1 = pipeline.generate_answer("Q1", chunks)
+    assert len(pipeline.get_history()) == 2
+    assert pipeline.get_history()[0] == {"role": "user", "content": "Q1"}
+    assert pipeline.get_history()[1] == {"role": "assistant", "content": ans1}
+
+    # Generate more exchanges to exceed the limit of 3
+    ans2 = pipeline.generate_answer("Q2", chunks)
+    ans3 = pipeline.generate_answer("Q3", chunks)
+    ans4 = pipeline.generate_answer("Q4", chunks)
+
+    # Should retain the last 3 exchanges (Q2, Q3, Q4)
+    history = pipeline.get_history()
+    assert len(history) == 6
+    assert history[0] == {"role": "user", "content": "Q2"}
+    assert history[1] == {"role": "assistant", "content": ans2}
+    assert history[2] == {"role": "user", "content": "Q3"}
+    assert history[3] == {"role": "assistant", "content": ans3}
+    assert history[4] == {"role": "user", "content": "Q4"}
+    assert history[5] == {"role": "assistant", "content": ans4}
+
+    # Clear history
+    pipeline.clear_history()
+    assert pipeline.get_history() == []
+
