@@ -387,6 +387,64 @@ Expressive names that state precisely what condition is being tested and what re
 ```python
 def test_pop_returns_last_pushed_item(self): ...
 def test_pop_on_empty_stack_raises_index_error(self): ...
-def test_size_is_zero_on_new_stack(self): ...
 def test_peek_does_not_change_size(self): ...
+def test_size_is_zero_on_new_stack(self): ...
+
+---
+
+## 11. Registry Pattern for Extensible Architectures
+
+The **Registry Pattern** replaces complex `if-elif` chains with a central dictionary or list mapping keys (like strings, enums, or types) to specific functions, classes, or handlers. This promotes a decoupled, highly extensible, and plugin-friendly architecture.
+
+By using Python decorators, you can automate this registration process, allowing new handlers to register themselves dynamically.
+
+### 🚫 Bad Practice (Verbose `if-elif` chains)
+Adding a new handler requires modifying the core decision logic, violating the Open-Closed Principle.
+```python
+def process_data(data: str, format_type: str) -> str:
+    if format_type == "json":
+        return format_json(data)
+    elif format_type == "xml":
+        return format_xml(data)
+    elif format_type == "yaml":
+        return format_yaml(data)
+    else:
+        raise ValueError(f"Unsupported format: {format_type}")
+```
+
+### ✅ Best Practice (Centralized Registry with Decorators)
+Use a registry decorator to register handlers automatically, keeping the core processing logic decoupled.
+
+```python
+from typing import Callable, Dict
+
+# 1. Central registry
+FORMAT_REGISTRY: Dict[str, Callable[[str], str]] = {}
+
+# 2. Registration decorator
+def register_format(name: str) -> Callable[[Callable[[str], str]], Callable[[str], str]]:
+    def decorator(func: Callable[[str], str]) -> Callable[[str], str]:
+        FORMAT_REGISTRY[name] = func
+        return func
+    return decorator
+
+# 3. Dynamic self-registration
+@register_format("json")
+def format_json(data: str) -> str:
+    return f"{{\"data\": \"{data}\"}}"
+
+@register_format("xml")
+def format_xml(data: str) -> str:
+    return f"<data>{data}</data>"
+
+# 4. Clean, extensible execution
+def process_data(data: str, format_type: str) -> str:
+    if handler := FORMAT_REGISTRY.get(format_type):
+        return handler(data)
+    raise ValueError(f"Unsupported format: {format_type}")
+```
+
+### ⚠️ Pitfalls to Keep in Mind
+* **Hidden/Implicit Logic**: Automated registration can make code harder to debug and trace because handlers register themselves as a side effect of importing the module.
+* **Import Order Dependency**: Decorators only execute when the module containing them is imported. If registration occurs dynamically (e.g., plugins folder), you must ensure your application explicitly imports/loads all plugin modules (e.g., using `importlib` or package discovery) at startup.
 ```
