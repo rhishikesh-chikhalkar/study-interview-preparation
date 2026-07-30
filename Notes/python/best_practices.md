@@ -390,7 +390,54 @@ def test_pop_on_empty_stack_raises_index_error(self): ...
 def test_peek_does_not_change_size(self): ...
 def test_size_is_zero_on_new_stack(self): ...
 
+### E. Pytest and Professional Unit Testing Guidelines
+
+For writing clean, readable, and robust test suites, adopt Pytest as the standard test runner and follow these modern unit testing practices:
+
+* **Use Pytest over Unittest**: Prefer `pytest` due to its simpler syntax (using plain `assert` statements instead of verbose camelCase helper methods) and its powerful extension ecosystem.
+* **Isolated and Predictable Validation**: Keep unit tests highly focused on isolated pieces of code (a single function or method). Avoid database or network calls; tests must be deterministic and extremely fast to provide a continuous feedback loop.
+* **Mocking and Monkey Patching**: Swap external dependencies (such as HTTP requests, third-party APIs, or filesystem operations) with mocks. Leverage `unittest.mock.MagicMock` or `pytest`'s `monkeypatch` fixture to simulate responses and inspect call histories.
+* **Use Fixtures for Setup/Teardown**: Replace old-style `setUp` and `tearDown` methods with Pytest fixtures. Fixtures are modular, reusable, and cleanly inject test dependencies.
+* **Parameterization**: Avoid writing separate test functions for verifying the same logic with different inputs. Use `@pytest.mark.parametrize` to run a single test logic against multiple datasets.
+
+```python
+import pytest
+from unittest.mock import MagicMock
+
+# Using pytest fixture for shared state/setup
+@pytest.fixture
+def api_client():
+    client = MagicMock()
+    client.get.return_value = {"status": "success", "data": 42}
+    return client
+
+# Parameterizing tests to reduce code duplication
+@pytest.mark.parametrize("input_val, expected", [
+    (2, 4),
+    (3, 9),
+    (4, 16)
+])
+def test_squares(input_val, expected):
+    assert input_val ** 2 == expected
+
+def test_api_call(api_client):
+    response = api_client.get("/endpoint")
+    assert response["status"] == "success"
+    api_client.get.assert_called_once_with("/endpoint")
+```
+
+* **Single Responsibility Assertions**: Keep assertions per test to a minimum (ideally a single logical assertion) so that failures pinpoint the exact broken behavior immediately.
+* **Environment Configuration**: Always define the pythonpath in configuration files (like `pytest.ini` or `pyproject.toml`) so the test runner can locate the application's source modules reliably.
+
+```ini
+# pytest.ini
+[pytest]
+pythonpath = .
+testpaths = tests
+```
+
 ---
+
 
 ## 11. Registry Pattern for Extensible Architectures
 
@@ -447,4 +494,157 @@ def process_data(data: str, format_type: str) -> str:
 ### ⚠️ Pitfalls to Keep in Mind
 * **Hidden/Implicit Logic**: Automated registration can make code harder to debug and trace because handlers register themselves as a side effect of importing the module.
 * **Import Order Dependency**: Decorators only execute when the module containing them is imported. If registration occurs dynamically (e.g., plugins folder), you must ensure your application explicitly imports/loads all plugin modules (e.g., using `importlib` or package discovery) at startup.
+
+---
+
+## 12. Best Practices for Production-Ready Code
+
+When building and deploying applications to production, follow these key architectural and operational guidelines to ensure reliability, security, scalability, and maintainability:
+
+### A. Use Appropriate Types
+Avoid using floating-point types (`float`) for currency, financial data, or any calculation where rounding errors are unacceptable due to precision issues. Instead, use Python's built-in `decimal.Decimal` class to ensure exact decimal representation.
+
+```python
+from decimal import Decimal
+
+# 🚫 Bad: Float precision issues
+price = 0.1 + 0.2  # 0.30000000000000004
+
+# ✅ Good: Exact precision with Decimal
+price = Decimal('0.1') + Decimal('0.2')  # Decimal('0.3')
 ```
+
+### B. Validate Input
+Do not trust client input. Leverage modern validation libraries like Pydantic and web framework tools (e.g., FastAPI query parameters) to enforce strict constraints (e.g., minimum/maximum string lengths, positive numbers, and correct formats) at the boundary of your application to prevent malformed data from propagating.
+
+```python
+from pydantic import BaseModel, Field
+
+# ✅ Validate incoming requests automatically
+class CreateUserRequest(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    age: int = Field(..., gt=0, lt=150)
+```
+
+### C. Decouple Business Logic
+Extract core business rules and logic from API routers or controller endpoints into dedicated Service classes or utility layers. This keeps the API transport layer thin, clean, and focused on HTTP concerns (routing, status codes, serialization), while making business logic independently unit-testable.
+
+### D. Implement Persistence
+Never store persistent state in-memory or hardcode data. Use a robust Database Management System (DBMS) alongside an Object-Relational Mapper (ORM) like SQLAlchemy or SQLModel. Always couple this setup with database migrations (e.g., using Alembic) to manage schema evolution safely over time.
+
+### E. Add Health Checks
+Expose a dedicated `/health` (or `/healthz`) endpoint that returns the status of the service and its key dependencies (like database, cache, or message queue connectivity). This allows infrastructure control planes (e.g., Kubernetes, AWS ECS, or Load Balancers) to perform automated liveness and readiness checks.
+
+### F. Defensive Programming & Error Handling
+Avoid returning generic `500 Internal Server Error` responses. Program defensively by intercepting expected failures and raising specific HTTP exceptions (e.g., `404 Not Found` for missing resources, `409 Conflict` for duplicate entries, or `400 Bad Request` for invalid states) to provide meaningful feedback to clients.
+
+```python
+from fastapi import HTTPException, status
+
+def get_item(item_id: int):
+    item = db.query(Item).get(item_id)
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Item with ID {item_id} not found"
+        )
+    return item
+```
+
+### G. Configuration Management
+Do not hardcode database URLs, API keys, or environment settings in your codebase. Manage configurations dynamically using environment variables or a configuration framework like Pydantic Settings. This enables clean separation of code and config across development, staging, and production environments.
+
+```python
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    database_url: str
+    api_key: str
+
+    class Config:
+        env_file = ".env"
+
+settings = Settings()
+```
+
+### H. Add Rate Limiting
+Protect your APIs from denial-of-service (DoS) attacks, brute-force attempts, and general abuse. Implement rate limiting on public or sensitive endpoints using libraries like `slowapi` or middleware at the gateway level to control the volume of requests a user can make in a given timeframe.
+
+### I. Write Comprehensive Tests
+Ensure reliability by automating test coverage for both success paths and failure edge cases. Set up a separate testing environment (such as using an in-memory SQLite database or Dockerized test containers) to run tests in isolation without mutating production or development data.
+
+### J. Monitoring & Logging
+Never use `print()` statements for diagnostic output in production environments. Use Python's standard `logging` library or structured logging (e.g., `structlog`) to emit logs with appropriate levels (`INFO`, `WARNING`, `ERROR`, `DEBUG`) and trace IDs, allowing centralized log management tools to parse and query them efficiently.
+
+### K. Automated Deployment
+Standardize the application environment using Docker to bundle code, dependencies, and system configurations into portable, reproducible container images. Automate build, test, and deployment workflows using Continuous Integration/Continuous Deployment (CI/CD) pipelines like GitHub Actions to ensure consistent and reliable releases.
+
+---
+
+## 13. Scalable FastAPI Project Structure and Configuration
+
+For building scalable, production-ready FastAPI applications, maintain clear boundaries between the API layer, business logic, data persistence, and configurations.
+
+### A. Balanced Folder Structure
+
+Keep application source code (`app/`) separated from tests (`tests/`) at the root level. Mirror the application structure within your test directory to keep tests organized and easily discoverable.
+
+```text
+├── app/
+│   ├── api/
+│   │   └── v1/          # Thin API routes/endpoints handling HTTP requests & responses
+│   ├── core/            # Cross-cutting configurations (Settings, logging, security)
+│   ├── database/        # Database sessions, engines, and migrations setup
+│   ├── models/          # Pydantic validation schemas (request/response models)
+│   ├── services/        # Service layer containing core business logic
+│   └── main.py          # Application entry point where routes/middlewares are registered
+├── tests/               # Mirrors the app/ folder structure for test files
+│   ├── api/
+│   ├── services/
+│   └── conftest.py      # pytest fixtures, database overrides, test configurations
+├── .env                 # Environment variables (local-only, not committed)
+├── .python-version      # Target python interpreter version
+├── pyproject.toml       # Centralized dependencies and tool configurations
+├── Dockerfile           # Standardized container environment
+└── docker-compose.yml   # Multi-container local development orchestrations
+```
+
+### B. Centralized Configuration Management
+Leverage `pydantic-settings` to load configurations dynamically from environment variables or a `.env` file. This prevents sensitive credentials from leaking into source control and ensures clean configuration validation at startup.
+
+### C. Thin API Layer (Decoupling)
+Keep FastAPI routes lightweight. The API layer should only concern itself with HTTP request translation, dependency resolution (e.g., getting DB sessions), calling the appropriate business logic service, and returning the structured response. Moving all business logic into service classes (`services/`) ensures a clean separation of concerns and easier testing.
+
+### D. Dependency Injection and Testing
+Utilize FastAPI's dependency injection (`Depends`) to inject services or database sessions. During testing, leverage dependency overrides (`app.dependency_overrides`) to swap real databases with an isolated, in-memory database or real services with mock implementations.
+
+```python
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+
+app = FastAPI()
+
+# Core implementation using dependency injection
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@app.get("/items/")
+def read_items(db: Session = Depends(get_db)):
+    return item_service.get_all(db)
+
+# Overriding dependencies in test setup
+def get_test_db():
+    # Return mock or in-memory database session
+    ...
+
+app.dependency_overrides[get_db] = get_test_db
+```
+
+### E. Consistent Environments
+Always use standard build and orchestration tooling (`Docker`, `Docker Compose`, and dependency manifests like `pyproject.toml`) to ensure local development environments mirror the production deployment environments exactly.
+
+

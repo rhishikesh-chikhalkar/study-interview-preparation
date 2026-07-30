@@ -172,5 +172,76 @@ def test_even_numbers(subtests):
     for i in [2, 4, 5, 6, 8]:
         with subtests.test(i=i):
             assert i % 2 == 0
+
+---
+
+## Monkey Patching vs. Mocking
+
+When writing unit tests, you frequently need to isolate the system under test from external dependencies (such as databases, file systems, or network requests). Both **monkey patching** and **mocking** are techniques used to achieve this isolation, but they operate differently.
+
+### 1. Monkey Patching
+
+**Monkey patching** is the mechanism of dynamically replacing a function, class, method, or attribute at runtime (execution time) with a fake or modified version.
+
+* **Purpose:** It temporarily overrides existing behavior, typically to prevent side-effects (such as making actual HTTP calls to external APIs).
+* **Usage:** Pytest provides a built-in `monkeypatch` fixture to safely modify attributes, dictionary items, or environment variables, automatically reverting the changes after the test completes.
+
+#### Example (Monkey Patching `httpx.get`):
+```python
+import httpx
+
+def test_fetch_data(monkeypatch):
+    # Dynamic runtime replacement function
+    def mock_get(url):
+        class FakeResponse:
+            def json(self):
+                return {"data": "mocked_response"}
+        return FakeResponse()
+
+    # Monkey patching the target dependency at runtime
+    monkeypatch.setattr(httpx, "get", mock_get)
+
+    response = httpx.get("https://api.example.com")
+    assert response.json() == {"data": "mocked_response"}
+```
+
+---
+
+### 2. Mocking
+
+**Mocking** uses specialized test-double objects—most notably `unittest.mock.MagicMock` or `Mock` in Python—to simulate complex dependencies.
+
+* **Purpose:** Mocks are designed specifically for testing. In addition to acting as placeholder objects, they record every interaction (calls, parameters, counts) and expose built-in assertion methods to verify usage.
+* **Usage:** Mocks allow you to check if a method was called correctly (e.g., `assert_called_once_with`) without writing boilerplate logic to track call states.
+
+#### Example (Mocking with `MagicMock`):
+```python
+from unittest.mock import MagicMock
+
+def test_user_service():
+    # Instantiate a mock repository object
+    mock_repo = MagicMock()
+    # Configure return value
+    mock_repo.get_user.return_value = {"id": 1, "name": "Alice"}
+
+    # Execute system under test
+    user = mock_repo.get_user(1)
+
+    # Built-in assertions to verify interaction
+    assert user["name"] == "Alice"
+    mock_repo.get_user.assert_called_once_with(1)
+```
+
+---
+
+### 3. Comparison Summary
+
+| Feature | Monkey Patching | Mocking |
+| :--- | :--- | :--- |
+| **Definition** | The broad mechanism of dynamically replacing code/attributes at runtime. | The practice of using mock objects (`MagicMock`) to simulate dependencies. |
+| **Approach** | Typically replaces a reference with a standard Python function or basic fake. | Replaces a reference with a sophisticated mock object that tracks calls. |
+| **Built-in Assertions** | No. Tracking calls requires manual helper variables or counters. | Yes. Provides helper methods (`assert_called_once`, `assert_called_with`). |
+| **Brittleness** | Higher. Manually managing dynamic attributes can easily leak state or mask typos. | Lower. Mocks can be configured strictly (e.g., `spec=True`) to match class APIs. |
+
 ```
 
