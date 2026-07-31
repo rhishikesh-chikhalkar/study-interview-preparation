@@ -34,6 +34,12 @@ from typing import List
 
 class Solution:
     def maxProfit(self, prices: List[int]) -> int:
+        """
+        Groups the current single pass approach.
+
+        Time Complexity: O(N) where N is the length of prices.
+        Space Complexity: O(1) auxiliary space.
+        """
         min_price = float("inf")
         max_profit = 0
         for price in prices:
@@ -43,17 +49,54 @@ class Solution:
                 max_profit = price - min_price
         return max_profit
 
+    def maxProfit_two_pointers(self, prices: List[int]) -> int:
+        """
+        Sliding Window / Two Pointers approach.
 
-s = Solution()
+        Time Complexity: O(N) where N is the length of prices.
+        Space Complexity: O(1) auxiliary space.
+        """
+        left = 0  # Buy day
+        right = 1  # Sell day
+        max_profit = 0
+        while right < len(prices):
+            if prices[left] < prices[right]:
+                profit = prices[right] - prices[left]
+                max_profit = max(max_profit, profit)
+            else:
+                left = right
+            right += 1
+        return max_profit
 
-# Example 1
-s1 = [7, 1, 5, 3, 6, 4]
-print(f"Input: s = {s1!r}")
-print(f"Output: {s.maxProfit(s1)}")
-print(f"Expected: 5\n")
+    def maxProfit_kadane(self, prices: List[int]) -> int:
+        """
+        Kadane's Algorithm (Maximum Subarray Sum) on daily price differences.
 
-# Example 2
-s2 = [7, 6, 4, 3, 1]
-print(f"Input: s = {s2!r}")
-print(f"Output: {s.maxProfit(s2)}")
-print(f"Expected: 0\n")
+        Time Complexity: O(N) where N is the length of prices.
+        Space Complexity: O(1) auxiliary space.
+        """
+        max_profit = 0
+        current_profit = 0
+        for i in range(1, len(prices)):
+            diff = prices[i] - prices[i - 1]
+            current_profit = max(0, current_profit + diff)
+            max_profit = max(max_profit, current_profit)
+        return max_profit
+
+
+if __name__ == "__main__":
+    solution = Solution()
+
+    # Test inputs
+    tests = [
+        [7, 1, 5, 3, 6, 4],
+        [7, 6, 4, 3, 1],
+    ]
+
+    for i, prices in enumerate(tests, 1):
+        print(f"--- Example {i} ---")
+        print(f"Input: prices = {prices}")
+        print(f"One pass output:       {solution.maxProfit(prices)}")
+        print(f"Two pointers output:   {solution.maxProfit_two_pointers(prices)}")
+        print(f"Kadane's output:       {solution.maxProfit_kadane(prices)}")
+        print()
