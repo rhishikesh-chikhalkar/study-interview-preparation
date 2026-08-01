@@ -13,11 +13,35 @@ app = Flask(__name__)
 
 # Configure persistent database directory and collection
 DB_DIR = os.getenv("CHROMA_DB_DIR", "./_tmp/chroma_db")
-COLLECTION_NAME = os.getenv("CHROMA_COLLECTION", "pdf_rag_collection")
 
 # Instantiate pipeline and collection
 pipeline = RAGPipeline(persist_directory=DB_DIR)
+COLLECTION_NAME = os.getenv(
+    "CHROMA_COLLECTION",
+    "pdf_rag_collection_openai"
+    if pipeline.openai_client
+    else "pdf_rag_collection_ollama",
+)
 collection = pipeline.create_or_get_collection(COLLECTION_NAME)
+
+
+@app.before_request
+def handle_options() -> Any:
+    if request.method == "OPTIONS":
+        response = app.make_default_options_response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+        response.headers["Access-Control-Allow-Methods"] = "GET,PUT,POST,DELETE,OPTIONS"
+        return response
+    return None
+
+
+@app.after_request
+def add_cors_headers(response: Any) -> Any:
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET,PUT,POST,DELETE,OPTIONS"
+    return response
 
 
 @app.route("/health", methods=["GET"])

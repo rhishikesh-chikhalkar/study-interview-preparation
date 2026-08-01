@@ -1,0 +1,42 @@
+.about-container {
+  padding: 40px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.about-title {
+  font-size: 2.8rem;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, var(--accent), #e0aaff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.about-description {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 30px;
+}
+
+.about-box {
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--accent-bg);
+  border-left: 4px solid var(--accent);
+}
+
+.about-box-title {
+  margin: 0 0 10px 0;
+  color: var(--text-h);
+}
+
+.about-list {
+  padding-left: 20px;
+  margin: 0;
+  color: var(--text);
+  line-height: 1.8;
+}

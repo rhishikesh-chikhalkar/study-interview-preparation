@@ -1,0 +1,175 @@
+.todo-container {
+  max-width: 480px;
+  margin: 40px auto;
+  padding: 32px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  text-align: left;
+  transition: all 0.3s ease;
+}
+
+.todo-title {
+  font-size: 28px;
+  margin: 0;
+  color: var(--text-h);
+}
+
+.todo-subtitle {
+  font-size: 14px;
+  color: var(--text);
+  margin: 4px 0 24px 0;
+}
+
+.todo-form {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.todo-input {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--code-bg);
+  color: var(--text-h);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.todo-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.todo-button {
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.todo-button:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.todo-button:active {
+  transform: translateY(0);
+}
+
+.todo-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.todo-item:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.todo-item-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  cursor: pointer;
+}
+
+.todo-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.todo-checkbox.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.todo-check-icon {
+  width: 14px;
+  height: 14px;
+  color: #fff;
+}
+
+.todo-text {
+  font-size: 16px;
+  color: var(--text-h);
+  transition: all 0.2s ease;
+}
+
+.completed .todo-text {
+  text-decoration: line-through;
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.todo-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.todo-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.todo-trash-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.todo-empty {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.todo-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text);
+  display: flex;
+  justify-content: space-between;
+}
