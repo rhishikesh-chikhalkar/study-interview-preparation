@@ -1,0 +1,46 @@
+.btn-primary {
+  /* Layout & Spacing */
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+
+  /* Aesthetics */
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  /* Sleek indigo gradient */
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  /* Rounded corners */
+  cursor: pointer;
+
+  /* Smooth animations */
+  transition: all 0.2s ease-in-out;
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  transform: translateY(-1px);
+  /* Slight lift */
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  /* Premium glowing shadow */
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+  /* Pressed effect */
+  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+}
