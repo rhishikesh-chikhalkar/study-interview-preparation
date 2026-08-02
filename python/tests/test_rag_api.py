@@ -76,7 +76,7 @@ def test_ask_endpoint_with_history(mock_pipeline, client):
     mock_pipeline.generate_answer.return_value = "Mock Answer"
     mock_pipeline.get_history.return_value = [
         {"role": "user", "content": "Prev Q"},
-        {"role": "assistant", "content": "Prev Ans"}
+        {"role": "assistant", "content": "Prev Ans"},
     ]
 
     response = client.post("/ask", json={"question": "New Q"})
@@ -87,5 +87,7 @@ def test_ask_endpoint_with_history(mock_pipeline, client):
     assert "conversation_history" in data
     assert len(data["conversation_history"]) == 2
     assert data["conversation_history"][0] == {"role": "user", "content": "Prev Q"}
-    assert data["conversation_history"][1] == {"role": "assistant", "content": "Prev Ans"}
-
+    assert data["conversation_history"][1] == {
+        "role": "assistant",
+        "content": "Prev Ans",
+    }

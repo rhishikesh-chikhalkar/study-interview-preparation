@@ -42,7 +42,7 @@ class Solution:
             if char in char_index and char_index[char] >= left:
                 left = char_index[char] + 1
             char_index[char] = right
-            
+
             # If we find a new maximum length, record the starting position
             if right - left + 1 > max_len:
                 max_len = right - left + 1
@@ -75,4 +75,3 @@ if __name__ == "__main__":
     print(f"Input: s = {s3!r}")
     print(f"Output Length: {length3}, Substring: {sub3!r}")
     print("Expected: 3")
-

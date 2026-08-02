@@ -26,3 +26,7 @@ dependencies = [
 
 [dependency-groups]
 dev = ["mpmath>=1.4.1", "ruff>=0.15.22", "pytest"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+

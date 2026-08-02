@@ -140,4 +140,3 @@ def test_conversation_history_retention():
     # Clear history
     pipeline.clear_history()
     assert pipeline.get_history() == []
-

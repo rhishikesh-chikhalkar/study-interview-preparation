@@ -12,7 +12,7 @@ An interactive, dependency-based roadmap designed for **senior engineers (5+ YOE
 | :----------- | :-------------------------------------------------------------------- | :--------------: | :----------------- | :-------------: |
 | **Phase -1**  | [Interview Meta-Skills & Behavioral](#-phase--1--interview-meta-skills--behavioral-leadership) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 0 (ongoing) |
 | **Phase 0**  | [CS Fundamentals (DSA)](#-phase-0--computer-science-fundamentals) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 1-4 |
-| **Phase 1**  | [Python Mastery](#-phase-1--python-mastery) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 5-7 |
+| **Phase 1**  | [Python Mastery](#-phase-1--python-mastery) | 🏃 _In Progress_ | `[░░░░░░░░░░] 2%` | Week 5-7 |
 | **Phase 2**  | [Data & SQL](#-phase-2--data--sql) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 8-10 |
 | **Phase 3**  | [Backend Development](#-phase-3--backend-development) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 11-14 |
 | **Phase 4**  | [Testing](#-phase-4--testing) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 15-16 |
@@ -199,7 +199,7 @@ An interactive, dependency-based roadmap designed for **senior engineers (5+ YOE
 
 #### ⚡ Concurrency & Parallelism (Senior Depth)
 
-- [ ] **Threading**: 🎯 `threading.Thread`, `Lock`, `RLock`, `Semaphore`, `Event`, `Condition`, thread-safety patterns
+- [x] **Threading**: 🎯 `threading.Thread`, `Lock`, `RLock`, `Semaphore`, `Event`, `Condition`, thread-safety patterns — *Implemented classic even/odd sequence printer:* [print_even_odd_threads.py](file:///Users/rhishikesh/GITHUB/study-interview-preparation/python/solutions/print_even_odd_threads.py)
 - [ ] **Multiprocessing**: `Process`, `Pool`, shared memory (`Value`, `Array`), `Manager`, IPC patterns
 - [ ] **AsyncIO**: 🎯 Event loop internals, `async/await`, `asyncio.gather`, `asyncio.create_task`, `asyncio.Queue`, cancellation patterns
 - [ ] **Async Libraries**: `aiohttp` (async HTTP), `asyncpg` (async PostgreSQL), `aiofiles`, writing async context managers
@@ -480,7 +480,7 @@ An interactive, dependency-based roadmap designed for **senior engineers (5+ YOE
 - [ ] **Pipeline Architecture**: 🎯 Build → Test → Security Scan → Deploy stages, parallelization, caching strategies
 - [ ] **GitHub Actions**: Workflows, runners (self-hosted vs GitHub-hosted), composite actions, reusable workflows, matrix builds, environment secrets, OIDC for cloud auth
 - [ ] **Deployment Strategies**: 🎯 Blue-green, canary, rolling updates, feature flags (LaunchDarkly/Unleash), traffic shifting
-- [ ] **Branching Strategy**: 🎯 Trunk-based development vs GitFlow, release branches, hotfix process, merge vs rebase
+- [ ] **Branching Strategy**: 🎯 Trunk-based development vs GitFlow, release branches, hotfix process, merge vs rebase (📂 *See [Git Submodules notes](file:///Users/rhishikesh/GITHUB/study-interview-preparation/notes/git-submodules.md)*)
 - [ ] **Artifact Management**: Container registries (ECR, GHCR), versioning (semver), immutable builds
 
 #### ☸️ Kubernetes (Production Depth)
