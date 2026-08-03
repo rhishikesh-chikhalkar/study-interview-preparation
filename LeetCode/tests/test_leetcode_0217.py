@@ -1,7 +1,6 @@
 import importlib
 import pytest
 
-# Since the file is named starting with a digit, we import it dynamically
 leetcode_0217 = importlib.import_module("leetcode.0217")
 Solution = leetcode_0217.Solution
 

@@ -4,9 +4,7 @@ from unittest.mock import patch
 import pytest
 
 # Ensure our imports work correctly by adding the target directory directly
-sys.path.insert(
-    0, str(Path(__file__).resolve().parent.parent.parent / "ai-engineering" / "rag")
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from rag_api import app
 

@@ -30,6 +30,10 @@ Constraints:
 s only consists of a, b or c characters.
 """
 
+from collections import namedtuple
+from itertools import repeat
+import numpy
+
 
 class Solution:
     def numberOfSubstrings(self, s: str) -> int:
@@ -66,19 +70,19 @@ s = Solution()
 s1 = "abcabc"
 print(f"Input: s = {s1!r}")
 print(f"Output: {s.numberOfSubstrings(s1)}")
-print(f"Expected: 10\n")
+print("Expected: 10\n")
 
 # Example 2
 s2 = "aaacb"
 print(f"Input: s = {s2!r}")
 print(f"Output: {s.numberOfSubstrings(s2)}")
-print(f"Expected: 3\n")
+print("Expected: 3\n")
 
 # Example 3
 s3 = "abc"
 print(f"Input: s = {s3!r}")
 print(f"Output: {s.numberOfSubstrings(s3)}")
-print(f"Expected: 1")
+print("Expected: 1")
 
 # Submitted by Samy Vilar <samy_vilar> on 06/20/2026
 
@@ -96,8 +100,6 @@ print(f"Expected: 1")
 # to "manually" check;
 
 # version 1.1 vectorized
-
-import numpy
 
 ids = bytearray(256)
 ids[98:100] = 1, 2

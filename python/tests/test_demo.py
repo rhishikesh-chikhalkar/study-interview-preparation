@@ -1,4 +1,5 @@
 import unittest
+import pytest
 
 
 class MyTests(unittest.TestCase):  # <- the clipboard
@@ -19,9 +20,6 @@ class TestNumbers(unittest.TestCase):
         for i in [2, 4, 5, 6, 8]:
             with self.subTest(i=i):
                 self.assertEqual(i % 2, 0)
-
-
-import pytest
 
 
 @pytest.mark.parametrize("i", [2, 4, 5, 6, 8])
