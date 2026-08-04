@@ -12,6 +12,7 @@ import operator
 from typing import Any
 
 from langchain_classic.agents import AgentExecutor, create_tool_calling_agent
+from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools import tool
@@ -161,10 +162,19 @@ def database_lookup(user_id: int) -> str:
     return f"No user record found for User ID {user_id}."
 
 
+web_search = DuckDuckGoSearchRun(
+    name="web_search",
+    description=(
+        "Search the web using DuckDuckGo. Use this tool when you do not know the answer "
+        "or need current real-world information, news, or external facts."
+    ),
+)
+
+
 def get_agent_tools() -> list[Any]:
     """Return all available tools for the basic agent."""
 
-    return [calculator, word_counter, get_weather, database_lookup]
+    return [calculator, word_counter, get_weather, database_lookup, web_search]
 
 
 def create_basic_agent(
@@ -194,9 +204,10 @@ def create_basic_agent(
             (
                 "system",
                 "You are an intelligent assistant equipped with specialized tools. "
-                "Carefully inspect user requests and choose the appropriate tool when calculation, "
-                "word counting, weather lookup, or user database queries are requested. "
-                "If no tool is needed, respond directly.",
+                "Carefully inspect user requests and choose the appropriate tool when "
+                "calculation, word counting, weather lookup, user database queries, or web "
+                "search is requested. Search the web when you do not know the answer or need "
+                "current information. If no tool is needed, respond directly.",
             ),
             ("human", "{input}"),
             MessagesPlaceholder(variable_name="agent_scratchpad"),
