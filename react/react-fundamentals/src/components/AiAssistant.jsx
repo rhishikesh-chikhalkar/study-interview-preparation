@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import "./AiAssistant.css";
 
 const API_BASE_URL = "http://localhost:5001";
 
@@ -105,43 +104,71 @@ const AiAssistant = () => {
   };
 
   return (
-    <div className="ai-container">
-      <div className="ai-header">
-        <div className="ai-header-title">
-          <span className="ai-status-dot"></span>
-          <h2>AI Assistant</h2>
+    <div className="max-w-3xl w-[92%] my-8 mx-auto bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl backdrop-blur-xl flex flex-col h-[600px] overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-4 bg-slate-900/80 border-b border-slate-800/80 flex justify-between items-center backdrop-blur-md sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          <h2 className="text-lg font-bold text-slate-100 m-0">AI Assistant</h2>
         </div>
-        <button onClick={handleClear} className="ai-clear-btn" title="Clear Conversation">
+        <button
+          onClick={handleClear}
+          className="px-3 py-1.5 text-xs font-semibold text-rose-400 hover:text-rose-300 border border-rose-500/30 hover:border-rose-500/60 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-all cursor-pointer"
+          title="Clear Conversation"
+        >
           Clear History
         </button>
       </div>
 
-      <div className="ai-chat-window">
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`ai-message-row ${msg.role}`}>
-            <div className={`ai-message-bubble ${msg.isError ? "error" : ""}`}>
-              <div className="ai-message-content">{msg.content}</div>
-              
-              {msg.sources && msg.sources.length > 0 && (
-                <div className="ai-message-sources">
-                  <div className="ai-sources-title">Retrieved Chunks:</div>
-                  {msg.sources.map((src, sIdx) => (
-                    <div key={sIdx} className="ai-source-item">
-                      <span className="ai-source-badge">
-                        {src.metadata.source} (Page {src.metadata.page})
-                      </span>
-                      <p className="ai-source-text">&quot;{src.text.slice(0, 150)}...&quot;</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+      {/* Chat Messages Feed */}
+      <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-4 bg-slate-950/40">
+        {messages.map((msg, idx) => {
+          const isUser = msg.role === "user";
+          return (
+            <div
+              key={idx}
+              className={`flex w-full ${isUser ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                  msg.isError
+                    ? "bg-rose-950/40 border border-rose-500/30 text-rose-200"
+                    : isUser
+                    ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-br-xs shadow-md shadow-indigo-500/10"
+                    : "bg-slate-800/90 text-slate-100 border border-slate-700/50 rounded-bl-xs shadow-sm"
+                }`}
+              >
+                <div>{msg.content}</div>
+
+                {/* Retrieved Sources Section */}
+                {msg.sources && msg.sources.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-slate-700/40 text-xs">
+                    <div className="font-semibold text-indigo-400 mb-2">Retrieved Chunks:</div>
+                    {msg.sources.map((src, sIdx) => (
+                      <div key={sIdx} className="bg-slate-900/80 p-2.5 rounded-lg mb-2 border border-slate-800">
+                        <span className="inline-block font-medium text-sky-400 text-[11px] mb-1 bg-sky-950/50 px-2 py-0.5 rounded border border-sky-800/40">
+                          {src.metadata.source} (Page {src.metadata.page})
+                        </span>
+                        <p className="m-0 text-slate-400 italic leading-snug">
+                          &quot;{src.text.slice(0, 150)}...&quot;
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
+
+        {/* Loading Indicator */}
         {isLoading && (
-          <div className="ai-message-row assistant">
-            <div className="ai-message-bubble loading-container">
-              <div className="ai-spinner"></div>
+          <div className="flex w-full justify-start">
+            <div className="flex items-center gap-3 px-4 py-3 bg-slate-800/90 text-slate-300 border border-slate-700/50 rounded-2xl rounded-bl-xs shadow-sm text-sm">
+              <div className="animate-spin h-4 w-4 border-2 border-indigo-400 border-t-transparent rounded-full"></div>
               <span>AI is thinking...</span>
             </div>
           </div>
@@ -149,26 +176,38 @@ const AiAssistant = () => {
         <div ref={chatEndRef} />
       </div>
 
+      {/* Error Banner */}
       {isError && (
-        <div className="ai-error-banner">
+        <div className="bg-rose-950/50 border-t border-rose-800/50 text-rose-300 px-6 py-3 text-xs flex justify-between items-center gap-4">
           <span>{errorMessage}</span>
-          <button className="ai-error-dismiss" onClick={() => setIsError(false)} title="Dismiss Error">✕</button>
+          <button
+            className="text-rose-300 hover:text-white transition-colors cursor-pointer text-sm font-bold px-1"
+            onClick={() => setIsError(false)}
+            title="Dismiss Error"
+          >
+            ✕
+          </button>
         </div>
       )}
 
-      <form onSubmit={handleSend} className="ai-input-form">
+      {/* Input Form */}
+      <form onSubmit={handleSend} className="p-4 bg-slate-900/80 border-t border-slate-800/80 flex gap-3 backdrop-blur-md">
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Ask a question about the indexed PDF..."
-          className="ai-input-field"
+          className="flex-1 px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all disabled:opacity-50"
           disabled={isLoading}
         />
-        <button type="submit" className="ai-send-btn" disabled={isLoading || !query.trim()}>
+        <button
+          type="submit"
+          disabled={isLoading || !query.trim()}
+          className="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl flex items-center justify-center transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+        >
           {isLoading ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <div className="ai-spinner-small"></div>
+            <div className="flex items-center gap-2">
+              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
               <span>Thinking...</span>
             </div>
           ) : (
@@ -181,3 +220,4 @@ const AiAssistant = () => {
 };
 
 export default AiAssistant;
+

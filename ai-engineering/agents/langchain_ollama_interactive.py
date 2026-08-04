@@ -1,13 +1,13 @@
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_ollama import ChatOllama
+from llm_factory import get_configured_llm
 
 
 def main():
-    print("Initializing ChatOllama model (qwen3:1.7b)...")
-    # Initialize the local ChatOllama model using the required variable naming 'llm' or 'model'
-    llm = ChatOllama(model="qwen3:1.7b", temperature=0)
+    print("Initializing LLM model using model factory...")
+    # Initialize the model using the centralized factory
+    llm = get_configured_llm()
 
     # Setup a prompt that has a placeholder for chat history
     prompt = ChatPromptTemplate.from_messages(

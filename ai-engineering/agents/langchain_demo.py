@@ -1,17 +1,18 @@
 # Full FastAPI + LangChain customer support bot
 
-from fastapi import FastAPI, Depends, HTTPException
+import jwt
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import OAuth2PasswordBearer
+from langchain_classic.agents import AgentType, initialize_agent
+from langchain_classic.memory import ConversationBufferMemory
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.vectorstores import FAISS
+from langchain_core.tools import Tool
+from langchain_ollama import OllamaEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from llm_factory import get_configured_llm
 from pydantic import BaseModel
 from sqlalchemy import create_engine, text
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_community.vectorstores import FAISS
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.tools import Tool
-from langchain_classic.agents import initialize_agent, AgentType
-from langchain_classic.memory import ConversationBufferMemory
-import jwt
 
 # ─────────────────────────────────────────────
 # 1. DATABASE SETUP
@@ -52,7 +53,9 @@ def build_vectorstore() -> FAISS:
     )
     chunks = splitter.split_documents(pages)
 
-    vectorstore = FAISS.from_documents(chunks, OpenAIEmbeddings())
+    vectorstore = FAISS.from_documents(
+        chunks, OllamaEmbeddings(model="nomic-embed-text")
+    )
     return vectorstore
 
 
@@ -78,7 +81,7 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
 # 4. BUILD AGENT (per request — memory is per session)
 # ─────────────────────────────────────────────
 def build_agent(user_id: int):
-    llm = ChatOpenAI(model="gpt-4", temperature=0)
+    llm = get_configured_llm()
 
     # Tool 1 — Structured live data (SQL)
     # We close over user_id here so the agent can't be tricked into
@@ -108,7 +111,7 @@ def build_agent(user_id: int):
     agent = initialize_agent(
         tools=[order_tool, policy_tool],
         llm=llm,
-        agent=AgentType.OPENAI_FUNCTIONS,
+        agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
         memory=memory,
         verbose=True,  # logs which tool the agent picks — remove in prod
     )

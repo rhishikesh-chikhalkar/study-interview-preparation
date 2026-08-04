@@ -213,3 +213,31 @@ What is FAISS, and why do we prefer it over traditional relational or document d
 - **FAISS Capabilities & Optimizations**:
   - **In-Memory & Lightweight**: It can run entirely in-memory local to the application, eliminating database roundtrip latencies for smaller apps.
   - **Approximate Nearest Neighbor (ANN) Search**: FAISS achieves sub-millisecond search times by clustering vectors (e.g., via IndexIVFFlat) or building graph-based indices (e.g., HNSW). Instead of scanning every vector, it narrows down the search space to the most promising cluster/neighborhood.
+
+---
+
+## 12. Production LLM Architecture: Model Factory & Provider Switching
+
+### Question
+How do you architect an enterprise AI application to seamlessly switch model providers (Ollama, OpenAI, Anthropic) without altering agent code or causing environment drift?
+
+### Answer
+- **Centralized Model Factory**: Wrap model instantiation using LangChain's `init_chat_model()` inside a dedicated factory function (`get_configured_llm()` in `llm_factory.py`). Agents import this factory instead of importing specific classes (`ChatOllama`, `ChatOpenAI`).
+- **Core Architecture Breakdown**:
+  1. **DRY (Don't Repeat Yourself)**:
+     - *What it means*: Avoid duplicating model initialization or configuration logic across multiple agent scripts. Consolidate into reusable factory functions like `llm_factory.py`.
+     - *In our code*: Before refactoring, model initialization logic (`ChatOllama` / `ChatOpenAI`) was copied across `basic_langchain_agent.py` and `langchain_demo.py`. Now it lives in one central function: `get_configured_llm` in `llm_factory.py`.
+     - *Why it matters*: If you want to add logging, cost tracking, or fallback models tomorrow, you update one file instead of editing 10 different agent scripts.
+  2. **Single Source of Truth (SSOT)**:
+     - *What it means*: There should be exactly one authoritative variable/place that defines a specific setting in your application.
+     - *In our code*: Previously, we had both `LLM_MODEL=qwen3:1.7b` and `OLLAMA_MODEL=qwen3:1.7b` in `.env`. We removed `OLLAMA_MODEL` so `LLM_MODEL` is the single source of truth for all providers.
+     - *Why it matters*: Eliminates configuration confusion, unexpected overrides, and environment drift.
+  3. **Separation of Concerns (SoC)**:
+     - *What it means*: Divide a program into distinct sections where each section addresses a separate responsibility.
+     - *In our code*: `llm_factory.py` handles model instantiation & config parsing; `basic_langchain_agent.py` handles agent tools and prompt execution.
+     - *Why it matters*: The agent code consumes the abstract `BaseChatModel` contract without worrying about how it was created.
+  4. **Zero Code Modifications for Provider Changes**:
+     - *What it means*: Application code remains unchanged ("closed for modification") when switching environments.
+     - *In our code*: Drive provider selection 100% via environment variables (`LLM_PROVIDER=ollama|openai|anthropic`) so switching providers requires zero code changes.
+     - *Why it matters*: You can deploy your application to local dev, staging, or production without modifying a single line of Python code or risking merge conflicts in Git.
+

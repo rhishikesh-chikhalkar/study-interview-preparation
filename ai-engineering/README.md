@@ -5,6 +5,7 @@ This directory contains code implementations, experiments, and projects related 
 ## 📁 Directory Structure
 
 - [agents/](./agents/) — AI Agentic workflows, tool use, and multi-agent systems.
+  - [basic_langchain_agent.py](./agents/basic_langchain_agent.py) — Tool-selection LangChain agent (Calculator, Word Counter, Weather, DB Lookup).
   - [langchain_demo.py](./agents/langchain_demo.py) — RAG & SQL database LangChain agent demonstration.
   - [langchain_ollama_demo.py](./agents/langchain_ollama_demo.py) — Local LLM integration using LangChain and Ollama.
   - [langchain_ollama_interactive.py](./agents/langchain_ollama_interactive.py) — Interactive local LLM CLI chatbot using LangChain and Ollama.

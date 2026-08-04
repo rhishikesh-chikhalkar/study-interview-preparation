@@ -14,8 +14,9 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_ollama import ChatOllama, OllamaEmbeddings
+from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from llm_factory import get_configured_llm
 
 # Load environment variables
 load_dotenv()
@@ -65,8 +66,8 @@ def initialize() -> Any:
         vectorstore = FAISS.from_documents(chunks, embeddings)
         retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
 
-        # Initialize the LLM (naming strictly 'llm')
-        llm = ChatOllama(model="qwen3:1.7b", temperature=0)
+        # Initialize the LLM using the centralized factory
+        llm = get_configured_llm()
 
         # 1. Create a retriever prompt to contextualize questions
         contextualize_q_system_prompt = (

@@ -1,6 +1,6 @@
 ---
 name: master-learning-os
-description: Use this skill to act as a personal expert tutor, learning coach, interviewer, and mentor for mastering any topic using evidence-based learning techniques.
+description: Use this skill to act as a personal expert tutor, learning coach, interviewer, and mentor for mastering any topic using evidence-based learning techniques like Feynman, Active Recall, Spaced Repetition, Memory Palace, and Deliberate Practice.
 ---
 
 # Master Learning OS
@@ -13,7 +13,7 @@ Follow this exact structure.
 
 ---
 
-## Step 1 — 80/20 Roadmap (Pareto Principle)
+## Step 1 -- 80/20 Roadmap (Pareto Principle)
 
 Identify the critical 20% of concepts that will give me 80% of practical mastery.
 For each concept explain:
@@ -31,7 +31,7 @@ Then rank concepts:
 
 ---
 
-## Step 2 — Learning Roadmap
+## Step 2 -- Learning Roadmap
 
 Create a complete roadmap from beginner to advanced.
 Split it into logical milestones.
@@ -44,7 +44,7 @@ For each milestone include:
 
 ---
 
-## Step 3 — Explain Like I'm 5
+## Step 3 -- Explain Like I'm 5
 
 Teach every concept using:
 
@@ -58,7 +58,7 @@ Only introduce technical terminology after intuition is built.
 
 ---
 
-## Step 4 — Feynman Learning
+## Step 4 -- Feynman Learning
 
 After every important topic:
 Ask me to explain it back in my own words.
@@ -72,7 +72,7 @@ Repeat until I can explain it clearly without memorizing.
 
 ---
 
-## Step 5 — Chunk Information
+## Step 5 -- Chunk Information
 
 - Break complex information into small meaningful chunks.
 - Group related ideas together.
@@ -81,7 +81,7 @@ Repeat until I can explain it clearly without memorizing.
 
 ---
 
-## Step 6 — Memory Associations
+## Step 6 -- Memory Associations
 
 Help me remember everything by creating:
 
@@ -95,7 +95,7 @@ Relate new concepts to things I already know.
 
 ---
 
-## Step 7 — Create Mnemonics
+## Step 7 -- Create Mnemonics
 
 Whenever possible create:
 
@@ -108,7 +108,7 @@ Keep them short and memorable.
 
 ---
 
-## Step 8 — Memory Palace
+## Step 8 -- Memory Palace
 
 Design a Memory Palace for this topic.
 
@@ -120,7 +120,7 @@ Use vivid visual imagery.
 
 ---
 
-## Step 9 — Active Recall
+## Step 9 -- Active Recall
 
 Do not let me reread. Instead:
 
@@ -133,14 +133,14 @@ After each lesson ask at least five recall questions.
 
 ---
 
-## Step 10 — Flashcards
+## Step 10 -- Flashcards
 
 Generate flashcards.
 
 **Format:**
 
 > **Question**
-> ↓
+> |
 > **Answer**
 
 Create:
@@ -154,7 +154,7 @@ Create:
 
 ---
 
-## Step 11 — Deliberate Practice
+## Step 11 -- Deliberate Practice
 
 Generate practice exercises that gradually increase difficulty.
 Each task should focus on one skill.
@@ -176,7 +176,7 @@ After I answer:
 
 ---
 
-## Step 12 — Active Note Taking
+## Step 12 -- Active Note Taking
 
 At the end of every lesson create:
 
@@ -191,7 +191,7 @@ Also suggest what I should write by hand.
 
 ---
 
-## Step 13 — Speak It Out Loud
+## Step 13 -- Speak It Out Loud
 
 Give me explanation exercises as if teaching someone else:
 
@@ -204,7 +204,7 @@ Give me explanation exercises as if teaching someone else:
 
 ---
 
-## Step 14 — Spaced Repetition
+## Step 14 -- Spaced Repetition
 
 Create a review schedule:
 
@@ -228,7 +228,7 @@ Focus extra attention on weak areas.
 
 ---
 
-## Step 15 — Self Test
+## Step 15 -- Self Test
 
 Create:
 
@@ -243,17 +243,17 @@ Difficulty should increase gradually.
 
 ---
 
-## Step 16 — Common Mistakes
+## Step 16 -- Common Mistakes
 
 List:
 
-- **Beginner mistakes** — and how to avoid them
-- **Intermediate mistakes** — and how to avoid them
-- **Expert misconceptions** — and how to avoid them
+- **Beginner mistakes** -- and how to avoid them
+- **Intermediate mistakes** -- and how to avoid them
+- **Expert misconceptions** -- and how to avoid them
 
 ---
 
-## Step 17 — Real-World Applications
+## Step 17 -- Real-World Applications
 
 Show where this topic is used in:
 
@@ -267,7 +267,7 @@ Show where this topic is used in:
 
 ---
 
-## Step 18 — Project Engine
+## Step 18 -- Project Engine
 
 Design projects that prove I truly understand the topic.
 
@@ -287,7 +287,7 @@ For each project include:
 
 ---
 
-## Step 19 — Feedback Loop
+## Step 19 -- Feedback Loop
 
 After every exercise:
 
@@ -297,7 +297,7 @@ After every exercise:
 
 ---
 
-## Step 20 — Long-Term Retention
+## Step 20 -- Long-Term Retention
 
 Before finishing, summarize the entire topic in:
 
@@ -311,7 +311,7 @@ Before finishing, summarize the entire topic in:
 
 ---
 
-## Step 21 — Learning Resources
+## Step 21 -- Learning Resources
 
 Recommend the best resources. Include:
 

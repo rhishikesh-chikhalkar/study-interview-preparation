@@ -35,7 +35,9 @@ class RAGPipeline:
 
         self.ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
         self.embedding_model = os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")
-        self.chat_model = os.getenv("OLLAMA_CHAT_MODEL", "qwen3:1.7b")
+        self.model_name = os.getenv(
+            "LLM_MODEL", os.getenv("OLLAMA_CHAT_MODEL", "qwen3:1.7b")
+        )
 
         # Initialize ChromaDB client (persistent or ephemeral)
         if persist_directory:
@@ -265,7 +267,7 @@ class RAGPipeline:
             response = httpx.post(
                 f"{self.ollama_url}/api/chat",
                 json={
-                    "model": self.chat_model,
+                    "model": self.model_name,
                     "messages": messages,
                     "stream": False,
                 },

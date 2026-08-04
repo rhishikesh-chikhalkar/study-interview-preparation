@@ -13,8 +13,9 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_ollama import ChatOllama, OllamaEmbeddings
+from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from llm_factory import get_configured_llm
 
 # Load environment variables (contains OPENAI_API_KEY)
 load_dotenv()
@@ -72,9 +73,9 @@ def main() -> None:
         print(f"Failed to build vector store: {e}")
         sys.exit(1)
 
-    # Initialize the LLM using production variable naming
-    print("Initializing ChatOllama model (qwen3:1.7b)...")
-    llm = ChatOllama(model="qwen3:1.7b", temperature=0)
+    # Initialize the LLM using the centralized factory
+    print("Initializing LLM model using model factory...")
+    llm = get_configured_llm()
 
     # 1. Create a retriever prompt to contextualize questions (reformulate with history)
     contextualize_q_system_prompt = (
