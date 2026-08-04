@@ -24,6 +24,39 @@ type ErrorResponse struct {
 	Details string `json:"details,omitempty"`
 }
 
+// UserRequest demonstrates receiving a structured JSON payload with struct tags.
+type UserRequest struct {
+	Username string   `json:"username"`
+	Email    string   `json:"email"`
+	Age      int      `json:"age,omitempty"`
+	Roles    []string `json:"roles,omitempty"`
+}
+
+// Validate checks for required fields and value boundaries.
+func (u UserRequest) Validate() error {
+	if u.Username == "" {
+		return errors.New("username is required")
+	}
+	if u.Email == "" {
+		return errors.New("email is required")
+	}
+	if u.Age < 0 {
+		return errors.New("age cannot be negative")
+	}
+	return nil
+}
+
+// UserResponse demonstrates returning a structured JSON response with tags.
+type UserResponse struct {
+	ID        string   `json:"id"`
+	Username  string   `json:"username"`
+	Email     string   `json:"email"`
+	IsAdult   bool     `json:"is_adult"`
+	Roles     []string `json:"roles"`
+	CreatedAt string   `json:"created_at"`
+	Status    string   `json:"status"`
+}
+
 // respondJSON writes a structured JSON payload with the given HTTP status code.
 func respondJSON(w http.ResponseWriter, status int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
@@ -43,8 +76,7 @@ func respondWithError(w http.ResponseWriter, status int, message string, details
 	respondJSON(w, status, resp)
 }
 
-// parseJSONBody parses and validates a JSON request body into target struct/raw message.
-// Demonstrates Go error wrapping and errors.As / errors.Is usage.
+// parseJSONBody parses and validates a JSON request body into a target struct.
 func parseJSONBody(r *http.Request, v any) error {
 	if r.Body == nil {
 		return ErrEmptyBody
@@ -137,6 +169,57 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, payload)
 }
 
+func usersHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		respondWithError(
+			w,
+			http.StatusMethodNotAllowed,
+			http.StatusText(http.StatusMethodNotAllowed),
+			fmt.Sprintf("method %s is not allowed on /users", r.Method),
+		)
+		return
+	}
+
+	var req UserRequest
+	if err := parseJSONBody(r, &req); err != nil {
+		respondWithError(
+			w,
+			http.StatusBadRequest,
+			"Invalid Request Payload",
+			err.Error(),
+		)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		respondWithError(
+			w,
+			http.StatusBadRequest,
+			"Validation Error",
+			err.Error(),
+		)
+		return
+	}
+
+	roles := req.Roles
+	if len(roles) == 0 {
+		roles = []string{"user"}
+	}
+
+	resp := UserResponse{
+		ID:        "usr_101",
+		Username:  req.Username,
+		Email:     req.Email,
+		IsAdult:   req.Age >= 18,
+		Roles:     roles,
+		CreatedAt: time.Now().UTC().Format(time.RFC3339),
+		Status:    "active",
+	}
+
+	respondJSON(w, http.StatusCreated, resp)
+}
+
 // loggingMiddleware logs incoming HTTP requests with method, URL, and timestamp.
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -154,6 +237,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", pingHandler)
 	mux.HandleFunc("/echo", echoHandler)
+	mux.HandleFunc("/users", usersHandler)
 
 	wrappedMux := loggingMiddleware(mux)
 

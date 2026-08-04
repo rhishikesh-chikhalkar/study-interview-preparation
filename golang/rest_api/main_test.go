@@ -155,6 +155,118 @@ func TestEchoHandler(t *testing.T) {
 	}
 }
 
+func TestUsersHandler(t *testing.T) {
+	tests := []struct {
+		name           string
+		method         string
+		body           string
+		expectedStatus int
+		checkResponse  func(t *testing.T, body string)
+	}{
+		{
+			name:           "Valid Adult User Creation",
+			method:         http.MethodPost,
+			body:           `{"username":"gopher","email":"gopher@go.dev","age":25,"roles":["admin"]}`,
+			expectedStatus: http.StatusCreated,
+			checkResponse: func(t *testing.T, body string) {
+				var resp UserResponse
+				if err := json.Unmarshal([]byte(body), &resp); err != nil {
+					t.Fatalf("failed to unmarshal UserResponse: %v", err)
+				}
+				if resp.Username != "gopher" || resp.Email != "gopher@go.dev" {
+					t.Errorf("unexpected user data: %+v", resp)
+				}
+				if !resp.IsAdult {
+					t.Errorf("expected IsAdult to be true")
+				}
+				if len(resp.Roles) != 1 || resp.Roles[0] != "admin" {
+					t.Errorf("unexpected roles: %v", resp.Roles)
+				}
+				if resp.Status != "active" {
+					t.Errorf("got status %s, want active", resp.Status)
+				}
+			},
+		},
+		{
+			name:           "Missing Username Validation Failure",
+			method:         http.MethodPost,
+			body:           `{"email":"gopher@go.dev","age":20}`,
+			expectedStatus: http.StatusBadRequest,
+			checkResponse: func(t *testing.T, body string) {
+				var errResp ErrorResponse
+				if err := json.Unmarshal([]byte(body), &errResp); err != nil {
+					t.Fatalf("failed to unmarshal ErrorResponse: %v", err)
+				}
+				if errResp.Error != "Validation Error" {
+					t.Errorf("got error %s, want Validation Error", errResp.Error)
+				}
+			},
+		},
+		{
+			name:           "Missing Email Validation Failure",
+			method:         http.MethodPost,
+			body:           `{"username":"gopher","age":20}`,
+			expectedStatus: http.StatusBadRequest,
+			checkResponse: func(t *testing.T, body string) {
+				var errResp ErrorResponse
+				if err := json.Unmarshal([]byte(body), &errResp); err != nil {
+					t.Fatalf("failed to unmarshal ErrorResponse: %v", err)
+				}
+				if errResp.Error != "Validation Error" {
+					t.Errorf("got error %s, want Validation Error", errResp.Error)
+				}
+			},
+		},
+		{
+			name:           "Negative Age Validation Failure",
+			method:         http.MethodPost,
+			body:           `{"username":"gopher","email":"gopher@go.dev","age":-5}`,
+			expectedStatus: http.StatusBadRequest,
+			checkResponse: func(t *testing.T, body string) {
+				var errResp ErrorResponse
+				if err := json.Unmarshal([]byte(body), &errResp); err != nil {
+					t.Fatalf("failed to unmarshal ErrorResponse: %v", err)
+				}
+				if errResp.Details != "age cannot be negative" {
+					t.Errorf("unexpected error details: %s", errResp.Details)
+				}
+			},
+		},
+		{
+			name:           "Method Not Allowed GET",
+			method:         http.MethodGet,
+			body:           "",
+			expectedStatus: http.StatusMethodNotAllowed,
+			checkResponse: func(t *testing.T, body string) {
+				var errResp ErrorResponse
+				if err := json.Unmarshal([]byte(body), &errResp); err != nil {
+					t.Fatalf("failed to unmarshal ErrorResponse: %v", err)
+				}
+				if errResp.Code != http.StatusMethodNotAllowed {
+					t.Errorf("got code %d, want 405", errResp.Code)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(tt.method, "/users", strings.NewReader(tt.body))
+			rr := httptest.NewRecorder()
+
+			usersHandler(rr, req)
+
+			if rr.Code != tt.expectedStatus {
+				t.Errorf("got status %d, want %d", rr.Code, tt.expectedStatus)
+			}
+
+			if tt.checkResponse != nil {
+				tt.checkResponse(t, rr.Body.String())
+			}
+		})
+	}
+}
+
 func TestParseJSONBody_ErrorWrapping(t *testing.T) {
 	t.Run("Empty Body Error Unwrapping", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(""))
