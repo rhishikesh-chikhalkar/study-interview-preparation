@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -10,100 +12,228 @@ import (
 )
 
 func TestPingHandler(t *testing.T) {
-	req, err := http.NewRequest("GET", "/ping", nil)
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name           string
+		method         string
+		expectedStatus int
+		expectedHeader string
+	}{
+		{
+			name:           "Valid GET Request",
+			method:         http.MethodGet,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Invalid POST Request",
+			method:         http.MethodPost,
+			expectedStatus: http.StatusMethodNotAllowed,
+			expectedHeader: http.MethodGet,
+		},
 	}
 
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(pingHandler)
-	handler.ServeHTTP(rr, req)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(tt.method, "/ping", nil)
+			rr := httptest.NewRecorder()
 
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-	}
+			pingHandler(rr, req)
 
-	expected := `{"message": "pong"}`
-	if rr.Body.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr.Body.String(), expected)
-	}
+			if rr.Code != tt.expectedStatus {
+				t.Errorf("got status %d, want %d", rr.Code, tt.expectedStatus)
+			}
 
-	contentType := rr.Header().Get("Content-Type")
-	if contentType != "application/json" {
-		t.Errorf("handler returned wrong content type: got %v want %v", contentType, "application/json")
+			contentType := rr.Header().Get("Content-Type")
+			if contentType != "application/json" {
+				t.Errorf("got Content-Type %s, want application/json", contentType)
+			}
+
+			if tt.expectedHeader != "" {
+				allow := rr.Header().Get("Allow")
+				if allow != tt.expectedHeader {
+					t.Errorf("got Allow header %s, want %s", allow, tt.expectedHeader)
+				}
+			}
+
+			if tt.expectedStatus == http.StatusOK {
+				var resp map[string]string
+				if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
+					t.Fatalf("failed to decode response: %v", err)
+				}
+				if resp["message"] != "pong" {
+					t.Errorf("got message %s, want pong", resp["message"])
+				}
+			}
+		})
 	}
 }
 
-func TestEchoHandler_ValidJSON(t *testing.T) {
-	jsonStr := []byte(`{"foo":"bar","baz":123}`)
-	req, err := http.NewRequest("POST", "/echo", bytes.NewBuffer(jsonStr))
-	if err != nil {
-		t.Fatal(err)
+func TestEchoHandler(t *testing.T) {
+	tests := []struct {
+		name           string
+		method         string
+		body           string
+		expectedStatus int
+		checkBody      func(t *testing.T, body string)
+	}{
+		{
+			name:           "Valid JSON POST",
+			method:         http.MethodPost,
+			body:           `{"foo":"bar","num":42}`,
+			expectedStatus: http.StatusOK,
+			checkBody: func(t *testing.T, body string) {
+				var data map[string]any
+				if err := json.Unmarshal([]byte(body), &data); err != nil {
+					t.Fatalf("invalid json response: %v", err)
+				}
+				if data["foo"] != "bar" || data["num"] != float64(42) {
+					t.Errorf("unexpected body content: %s", body)
+				}
+			},
+		},
+		{
+			name:           "Method Not Allowed GET",
+			method:         http.MethodGet,
+			body:           "",
+			expectedStatus: http.StatusMethodNotAllowed,
+			checkBody: func(t *testing.T, body string) {
+				var errResp ErrorResponse
+				if err := json.Unmarshal([]byte(body), &errResp); err != nil {
+					t.Fatalf("invalid error json: %v", err)
+				}
+				if errResp.Code != http.StatusMethodNotAllowed {
+					t.Errorf("got code %d, want %d", errResp.Code, http.StatusMethodNotAllowed)
+				}
+			},
+		},
+		{
+			name:           "Malformed Syntax JSON",
+			method:         http.MethodPost,
+			body:           `{"foo":}`,
+			expectedStatus: http.StatusBadRequest,
+			checkBody: func(t *testing.T, body string) {
+				var errResp ErrorResponse
+				if err := json.Unmarshal([]byte(body), &errResp); err != nil {
+					t.Fatalf("invalid error json: %v", err)
+				}
+				if errResp.Error != "Invalid JSON" {
+					t.Errorf("got error %s, want Invalid JSON", errResp.Error)
+				}
+			},
+		},
+		{
+			name:           "Empty Request Body",
+			method:         http.MethodPost,
+			body:           "",
+			expectedStatus: http.StatusBadRequest,
+			checkBody: func(t *testing.T, body string) {
+				var errResp ErrorResponse
+				if err := json.Unmarshal([]byte(body), &errResp); err != nil {
+					t.Fatalf("invalid error json: %v", err)
+				}
+				if errResp.Error != "Bad Request" {
+					t.Errorf("got error %s, want Bad Request", errResp.Error)
+				}
+			},
+		},
 	}
-	req.Header.Set("Content-Type", "application/json")
 
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(echoHandler)
-	handler.ServeHTTP(rr, req)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(tt.method, "/echo", strings.NewReader(tt.body))
+			rr := httptest.NewRecorder()
 
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-	}
+			echoHandler(rr, req)
 
-	if rr.Body.String() != string(jsonStr) {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr.Body.String(), string(jsonStr))
+			if rr.Code != tt.expectedStatus {
+				t.Errorf("got status %d, want %d", rr.Code, tt.expectedStatus)
+			}
+
+			if tt.checkBody != nil {
+				tt.checkBody(t, rr.Body.String())
+			}
+		})
 	}
 }
 
-func TestEchoHandler_InvalidJSON(t *testing.T) {
-	jsonStr := []byte(`invalid json`)
-	req, err := http.NewRequest("POST", "/echo", bytes.NewBuffer(jsonStr))
-	if err != nil {
-		t.Fatal(err)
+func TestParseJSONBody_ErrorWrapping(t *testing.T) {
+	t.Run("Empty Body Error Unwrapping", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(""))
+		var val map[string]any
+		err := parseJSONBody(req, &val)
+
+		if !errors.Is(err, ErrEmptyBody) {
+			t.Errorf("expected errors.Is(err, ErrEmptyBody) to be true, got %v", err)
+		}
+	})
+
+	t.Run("Syntax Error Unwrapping", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader("{bad}"))
+		var val map[string]any
+		err := parseJSONBody(req, &val)
+
+		if !errors.Is(err, ErrInvalidJSON) {
+			t.Errorf("expected errors.Is(err, ErrInvalidJSON) to be true, got %v", err)
+		}
+	})
+
+	t.Run("Type Error Unwrapping", func(t *testing.T) {
+		type Target struct {
+			Age int `json:"age"`
+		}
+		req := httptest.NewRequest(
+			http.MethodPost,
+			"/test",
+			strings.NewReader(`{"age":"not-a-number"}`),
+		)
+		var val Target
+		err := parseJSONBody(req, &val)
+
+		if !errors.Is(err, ErrInvalidJSON) {
+			t.Errorf("expected errors.Is(err, ErrInvalidJSON) to be true, got %v", err)
+		}
+	})
+}
+
+func TestRespondWithError(t *testing.T) {
+	rr := httptest.NewRecorder()
+	respondWithError(rr, http.StatusBadRequest, "Bad Request", "test detail")
+
+	if rr.Code != http.StatusBadRequest {
+		t.Errorf("got status %d, want %d", rr.Code, http.StatusBadRequest)
 	}
 
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(echoHandler)
-	handler.ServeHTTP(rr, req)
+	var resp ErrorResponse
+	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
 
-	if status := rr.Code; status != http.StatusBadRequest {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
+	if resp.Error != "Bad Request" || resp.Code != http.StatusBadRequest || resp.Details != "test detail" {
+		t.Errorf("unexpected error response structure: %+v", resp)
 	}
 }
 
 func TestLoggingMiddleware(t *testing.T) {
-	// Capture log output
 	var buf bytes.Buffer
 	originalWriter := log.Writer()
 	log.SetOutput(&buf)
 	defer log.SetOutput(originalWriter)
 
-	// Create a dummy next handler
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
 	})
 
 	middleware := loggingMiddleware(nextHandler)
-
-	req, err := http.NewRequest("GET", "/test-path", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	req := httptest.NewRequest(http.MethodGet, "/test-path", nil)
 	rr := httptest.NewRecorder()
+
 	middleware.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
-		t.Errorf("expected status 200, got %d", rr.Code)
+		t.Errorf("got status %d, want 200", rr.Code)
 	}
 
 	logOutput := buf.String()
-	if !strings.Contains(logOutput, "GET") {
-		t.Errorf("expected log output to contain GET, got %s", logOutput)
-	}
-	if !strings.Contains(logOutput, "/test-path") {
-		t.Errorf("expected log output to contain /test-path, got %s", logOutput)
+	if !strings.Contains(logOutput, "GET") || !strings.Contains(logOutput, "/test-path") {
+		t.Errorf("log output missing details: %s", logOutput)
 	}
 }
-

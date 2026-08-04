@@ -1,82 +1,89 @@
-# Go REST API Implementation
+# Idiomatic Go Error Handling & REST API
 
-This directory contains a production-ready, concurrent Go REST API built using only the standard library (`net/http`). 
-
-It provides two endpoints and is fully tested with unit tests using Go's built-in `testing` and `net/http/httptest` packages.
-
----
-
-## 📂 Project Structure
-
-- [main.go](file:///Users/rhishikesh/GITHUB/study-interview-preparation/golang/rest_api/main.go): Core server setup and HTTP handler functions.
-- [main_test.go](file:///Users/rhishikesh/GITHUB/study-interview-preparation/golang/rest_api/main_test.go): Comprehensive table-driven and unit tests for the handlers.
-- [go.mod](file:///Users/rhishikesh/GITHUB/study-interview-preparation/golang/rest_api/go.mod): Go module declaration.
+This directory demonstrates production-grade, idiomatic Go error handling and standardized HTTP
+responses using Go's standard library (`net/http`, `errors`, `fmt`, `encoding/json`).
 
 ---
 
-## 🚀 Endpoints & Implementation Details
+## 💡 Key Go Error Handling Patterns
+
+### 1. Sentinel Errors
+Sentinel errors are pre-declared, package-level error variables used for constant error comparison.
+```go
+var (
+    ErrMethodNotAllowed = errors.New("method not allowed")
+    ErrEmptyBody        = errors.New("request body cannot be empty")
+    ErrInvalidJSON      = errors.New("malformed or invalid JSON payload")
+)
+```
+
+### 2. Error Wrapping with `%w`
+Go 1.13+ allows wrapping an error inside another error using `fmt.Errorf("%w", err)`. This preserves
+the underlying cause so callers can inspect error trees:
+```go
+return fmt.Errorf("%w: syntax error at byte offset %d", ErrInvalidJSON, syntaxErr.Offset)
+```
+
+### 3. Error Inspection (`errors.Is` and `errors.As`)
+- **`errors.Is(err, target)`**: Checks if `target` exists anywhere in `err`'s wrapping chain.
+```go
+if errors.Is(err, ErrEmptyBody) {
+    // Handle empty body error
+}
+```
+- **`errors.As(err, &target)`**: Unwraps `err` until it matches the type of `target` and binds it.
+```go
+var syntaxErr *json.SyntaxError
+if errors.As(err, &syntaxErr) {
+    log.Printf("Syntax error at offset %d", syntaxErr.Offset)
+}
+```
+
+---
+
+## 🏗️ Standardized API Error Response
+
+All API errors return a consistent, structured JSON payload:
+```json
+{
+  "error": "Invalid JSON",
+  "code": 400,
+  "details": "malformed or invalid JSON payload: syntax error at byte offset 8"
+}
+```
+
+### Response Helper Functions
+- **`respondJSON(w, status, payload)`**: Encodes payload to JSON and sets `Content-Type`.
+- **`respondWithError(w, status, message, details)`**: Formats an `ErrorResponse` and sends JSON.
+
+---
+
+## 🚀 API Endpoints
 
 ### 1. `GET /ping`
-- **Purpose**: A health-check endpoint.
-- **Method Allowed**: `GET` (returns `405 Method Not Allowed` for any other method).
-- **Response Format**: `application/json`
-- **Payload**:
+- **Method Allowed**: `GET`
+- **Success (`200 OK`)**:
   ```json
-  {
-    "message": "pong"
-  }
+  {"message": "pong"}
   ```
+- **Error (`405 Method Not Allowed`)**: Sets `Allow: GET` header and returns JSON error.
 
 ### 2. `POST /echo`
-- **Purpose**: Echoes back any valid received JSON payload.
-- **Method Allowed**: `POST` (returns `405 Method Not Allowed` for any other method).
-- **JSON Validation**: Checks if the request body is valid JSON using `json.Unmarshal` into `json.RawMessage`. If invalid, returns a `400 Bad Request` with `{"error": "Invalid JSON"}`.
-- **Response Format**: `application/json`
-- **Payload**: Echoes the exact bytes of the received request body.
+- **Method Allowed**: `POST`
+- **Success (`200 OK`)**: Echoes validated JSON payload.
+- **Error (`400 Bad Request`)**: Returned when body is empty or malformed JSON.
+- **Error (`405 Method Not Allowed`)**: Sets `Allow: POST` header and returns JSON error.
 
 ---
 
-## 🛠️ How to Run
+## 🧪 Testing & Verification
 
-From this directory, run:
+Run tests and static analysis:
 ```bash
-go run main.go
-```
-The server will start on port `8080`.
-
-### Testing with `curl`
-
-**1. Ping Health Check:**
-```bash
-curl -i http://localhost:8080/ping
+go test -v ./...
+go vet ./...
 ```
 
-**2. Echo JSON Payload:**
-```bash
-curl -i -X POST http://localhost:8080/echo \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Gopher", "role": "Developer"}'
-```
-
-**3. Test Method Not Allowed (GET on /echo):**
-```bash
-curl -i http://localhost:8080/echo
-```
-
----
-
-## 🧪 Running Tests
-
-Go provides robust tooling for testing HTTP handlers in the standard library. Run the suite using:
-```bash
-go test -v .
-```
-
-### What is covered?
-- **`TestPingHandler`**: Verifies that `GET /ping` returns status `200 OK` with `{"message": "pong"}` and `Content-Type: application/json`.
-- **`TestEchoHandler_ValidJSON`**: Verifies that a valid JSON payload sent via `POST` is correctly echoed back with status `200 OK`.
-- **`TestEchoHandler_InvalidJSON`**: Verifies that invalid JSON payload returns status `400 Bad Request`.
-
-### Key Go Testing Concepts Utilized
-- **`httptest.NewRecorder()`**: A mock response writer that implements the `http.ResponseWriter` interface to capture response headers, status codes, and bodies without spinning up an actual network socket.
-- **`http.HandlerFunc()`**: Casts the raw handler function to wrap it as a handler, exposing the `ServeHTTP(w, r)` method.
+### Test Coverage Highlights
+- **Table-Driven Tests**: Efficient test matrices for status codes, headers, and bodies.
+- **Error Unwrapping Tests**: Verifies `errors.Is(err, ErrInvalidJSON)` for decoder failures.
