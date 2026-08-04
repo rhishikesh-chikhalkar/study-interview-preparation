@@ -11,6 +11,13 @@ Currently, two official plugins are available:
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+## Features and Components
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Responsive Navbar**: A navigation component built with React state management (`useState`)
+  and Tailwind CSS (`hidden md:flex`, `md:hidden`), featuring a mobile hamburger toggle button,
+  accessible ARIA attributes (`aria-expanded`, `aria-label`), and auto-closing mobile dropdown.
+- **Todo Application**: State management and CRUD workflows.
+- **Cat Facts Generator**: Asynchronous data fetching with `useEffect`.
+- **Search Filter**: Real-time item filtering component.
+- **AI Assistant**: RAG PDF search integration interface.
+

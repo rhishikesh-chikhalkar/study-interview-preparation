@@ -8,6 +8,7 @@ import CatFact from "./components/CatFact";
 import Counter from "./components/Counter";
 import SearchFilter from "./components/SearchFilter";
 import AiAssistant from "./components/AiAssistant";
+import NavbarDemo from "./components/NavbarDemo";
 
 const App = () => {
   return (
@@ -25,6 +26,7 @@ const App = () => {
             <Route path="/projects/counter" element={<Counter />} />
             <Route path="/projects/search-filter" element={<SearchFilter />} />
             <Route path="/projects/ai-assistant" element={<AiAssistant />} />
+            <Route path="/projects/navbar" element={<NavbarDemo />} />
           </Routes>
         </main>
 

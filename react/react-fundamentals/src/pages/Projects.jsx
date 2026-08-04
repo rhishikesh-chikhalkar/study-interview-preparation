@@ -38,6 +38,13 @@ const Projects = () => {
       tech: ["React", "Fetch API", "Flask", "RAG"],
       path: "/projects/ai-assistant",
     },
+    {
+      id: 6,
+      title: "Responsive Navbar",
+      description: "A responsive navigation bar with desktop links and a mobile hamburger menu built with Tailwind CSS.",
+      tech: ["React", "Tailwind CSS", "Hooks"],
+      path: "/projects/navbar",
+    },
   ];
 
   return (
