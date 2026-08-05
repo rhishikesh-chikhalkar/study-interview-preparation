@@ -1,38 +1,76 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const TodoContext = createContext(null);
 
-export const TodoProvider = ({ children }) => {
-  const [todos, setTodos] = useState([
-    { id: 1, text: "Learn React useState hook", completed: true },
-    { id: 2, text: "Build a premium Todo Application", completed: false },
-    { id: 3, text: "Master Advanced Agentic Coding", completed: false },
-  ]);
+const DEFAULT_TODOS = [
+  {
+    id: 1,
+    text: "Master React & Tailwind CSS styling",
+    priority: "high",
+    completed: true,
+  },
+  {
+    id: 2,
+    text: "Build portfolio-worthy web applications",
+    priority: "medium",
+    completed: false,
+  },
+  {
+    id: 3,
+    text: "Review state management & context API",
+    priority: "low",
+    completed: false,
+  },
+];
 
-  const addTodo = (text) => {
+export const TodoProvider = ({ children }) => {
+  const [todos, setTodos] = useState(() => {
+    const saved = localStorage.getItem("react_todos_v2");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return DEFAULT_TODOS;
+      }
+    }
+    return DEFAULT_TODOS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("react_todos_v2", JSON.stringify(todos));
+  }, [todos]);
+
+  const addTodo = (text, priority = "medium") => {
     const newTodo = {
       id: Date.now(),
-      text: text,
+      text,
+      priority,
       completed: false,
     };
-    setTodos((prevTodos) => [...prevTodos, newTodo]);
+    setTodos((prev) => [newTodo, ...prev]);
   };
 
   const toggleTodo = (id) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo,
-      ),
+    setTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
     );
   };
 
   const deleteTodo = (id) => {
-    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+    setTodos((prev) => prev.filter((todo) => todo.id !== id));
+  };
+
+  const clearCompleted = () => {
+    setTodos((prev) => prev.filter((todo) => !todo.completed));
   };
 
   return (
-    <TodoContext.Provider value={{ todos, addTodo, toggleTodo, deleteTodo }}>
+    <TodoContext.Provider
+      value={{ todos, addTodo, toggleTodo, deleteTodo, clearCompleted }}
+    >
       {children}
     </TodoContext.Provider>
   );

@@ -124,3 +124,52 @@ These rules apply to **ALL** languages (Python, JavaScript, TypeScript):
 - **Resolution**: `Python: Select Interpreter` -> choose `<project-root>/.venv/bin/python`.
 - **DO NOT** modify source code to fix these. They disappear once the interpreter is correctly configured.
 - **Warnings that DO require code changes**: `Multiple statements on one line`, `imported but unused`, actual syntax/type errors.
+
+---
+
+# INTERVIEW PREPARATION RESEARCH DIRECTIVE
+
+## Knowledge-First Workflow
+
+For **every** user prompt related to a technical topic:
+
+1. **Check local notes first**: Search the `notes/` directory
+   (`/Users/rhishikesh/GITHUB/study-interview-preparation/notes`)
+   and its subdirectories for existing content on the requested topic.
+2. **If notes exist**: Use them as the primary source. Supplement with
+   web research only if the user explicitly asks for updates or the
+   notes are clearly outdated.
+3. **If notes do NOT exist**: Perform a web search to gather the
+   **latest, authoritative information** on the topic, then produce
+   the deliverables listed below.
+
+## Deliverables (when researching a new topic)
+
+Every research output **must** include both sections:
+
+### 1. Structured Notes
+- Clear, concise notes covering core concepts, best practices, and
+  common pitfalls.
+- Use markdown with proper headings, code examples, and diagrams
+  where helpful.
+- Include references/links to authoritative sources.
+
+### 2. Interview Questions & Answers
+- Curate questions targeted at a **5 years of experience (YOE) IT
+  professional** level -- not entry-level, not staff/principal.
+- Cover a mix of:
+  - Conceptual / theoretical questions
+  - Practical / scenario-based questions
+  - Coding / implementation questions (where applicable)
+  - System design / architecture questions (where applicable)
+- Provide detailed answers with explanations, not just one-liners.
+- Highlight follow-up questions an interviewer might ask.
+
+## File Organization
+
+- Save new notes under `notes/<category>/<topic>.md`
+  (e.g., `notes/python/decorators.md`,
+  `notes/ai-engineering/rag-patterns.md`).
+- Match existing directory conventions found in `notes/`.
+- If no matching category directory exists, create one with a
+  clear, lowercase, hyphenated name.
