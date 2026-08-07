@@ -17,11 +17,11 @@ class MyTests(unittest.TestCase):  # <- the clipboard
 
 class TestNumbers(unittest.TestCase):
     def test_even_numbers(self):
-        for i in [2, 4, 5, 6, 8]:
+        for i in [2, 4, 6, 8, 10]:
             with self.subTest(i=i):
                 self.assertEqual(i % 2, 0)
 
 
-@pytest.mark.parametrize("i", [2, 4, 5, 6, 8])
+@pytest.mark.parametrize("i", [2, 4, 6, 8, 10])
 def test_even_numbers(i):
     assert i % 2 == 0
