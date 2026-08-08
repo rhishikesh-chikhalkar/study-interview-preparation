@@ -1,5 +1,6 @@
-# Multi-stage Production Dockerfile for Flask RAG API
-FROM python:3.10-slim AS builder
+FROM python:3.12-slim-bookworm AS builder
+
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -14,8 +15,9 @@ COPY src/ src/
 # Build wheel package
 RUN uv build --wheel -o /app/dist
 
-# Final production runtime stage
-FROM python:3.10-slim AS runner
+FROM python:3.12-slim-bookworm AS runner
+
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

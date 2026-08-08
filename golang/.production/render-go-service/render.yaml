@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: render-go-service
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    rootDir: golang/.production/render-go-service
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: ENV
+        value: production
+      - key: READ_TIMEOUT
+        value: "15"
+      - key: WRITE_TIMEOUT
+        value: "15"
+      - key: SHUTDOWN_TIMEOUT
+        value: "10"
+      - key: API_KEY
+        generateValue: true
