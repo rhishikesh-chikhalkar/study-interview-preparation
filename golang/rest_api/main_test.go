@@ -319,7 +319,9 @@ func TestRespondWithError(t *testing.T) {
 		t.Fatalf("failed to decode response: %v", err)
 	}
 
-	if resp.Error != "Bad Request" || resp.Code != http.StatusBadRequest || resp.Details != "test detail" {
+	if resp.Error != "Bad Request" ||
+		resp.Code != http.StatusBadRequest ||
+		resp.Details != "test detail" {
 		t.Errorf("unexpected error response structure: %+v", resp)
 	}
 }

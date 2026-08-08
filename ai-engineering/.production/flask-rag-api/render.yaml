@@ -4,7 +4,7 @@ services:
     runtime: python
     region: oregon
     plan: free
-    rootDir: ai-engineering/production/flask-rag-api
+    rootDir: ai-engineering/.production/flask-rag-api
     buildCommand: pip install uv && uv pip install --system .
     startCommand: gunicorn --bind 0.0.0.0:$PORT wsgi:app
     healthCheckPath: /health

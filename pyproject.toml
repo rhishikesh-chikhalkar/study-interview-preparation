@@ -31,6 +31,7 @@ dependencies = [
 dev = ["mpmath>=1.4.1", "ruff>=0.15.22", "pytest"]
 
 [tool.pytest.ini_options]
-pythonpath = [".", "ai-engineering/production/flask-rag-api/src"]
+pythonpath = [".", "ai-engineering/.production/flask-rag-api/src"]
+norecursedirs = [".venv", "venv", ".git", "_tmp", "build", "dist"]
 
 

@@ -31,10 +31,10 @@ with Flask Blueprints.
 
 ### Production Package Structure
 
-The microservice is located at `ai-engineering/production/flask-rag-api/` and organized into a clean `src/` layout:
+The microservice is located at `ai-engineering/.production/flask-rag-api/` and organized into a clean `src/` layout:
 
 ```text
-ai-engineering/production/flask-rag-api/
+ai-engineering/.production/flask-rag-api/
 ├── Dockerfile                   # Multi-stage production Docker container build
 ├── .dockerignore                # Container context build exclusions
 ├── .env.example                 # Environment variable template
@@ -97,7 +97,7 @@ ai-engineering/production/flask-rag-api/
 1. **Repository Connection**: Connect GitHub repository in Render Dashboard.
 2. **Service Configuration**:
    - **Service Type**: Web Service
-   - **Root Directory**: `ai-engineering/production/flask-rag-api`
+   - **Root Directory**: `ai-engineering/.production/flask-rag-api`
    - **Runtime**: Python 3
    - **Build Command**: `pip install .` (or `uv pip install .`)
    - **Start Command**: `gunicorn --bind 0.0.0.0:$PORT wsgi:app`
@@ -109,7 +109,7 @@ services:
   - type: web
     name: flask-rag-api-prod
     runtime: python
-    rootDir: ai-engineering/production/flask-rag-api
+    rootDir: ai-engineering/.production/flask-rag-api
     buildCommand: pip install uv && uv pip install --system .
     startCommand: gunicorn --bind 0.0.0.0:$PORT wsgi:app
     envVars:
@@ -203,7 +203,7 @@ Combining Gunicorn with the Application Factory pattern (`create_app()`) solves 
 ---
 
 ### Question 2 (Practical / Scenario): Ephemeral Disks & Vector DB State Persistence
-**Q**: You deployed a Flask RAG API located at `ai-engineering/production/flask-rag-api` using local ChromaDB storage to Render. Users report that after every code deployment or service restart, previously indexed PDF knowledge disappears. What is the root cause and how would you resolve it?
+**Q**: You deployed a Flask RAG API located at `ai-engineering/.production/flask-rag-api` using local ChromaDB storage to Render. Users report that after every code deployment or service restart, previously indexed PDF knowledge disappears. What is the root cause and how would you resolve it?
 
 **A**:
 **Root Cause**: Render Web Services run inside ephemeral Docker containers. Unless a persistent disk volume is explicitly attached, any data written to the local filesystem (such as ChromaDB files inside `./_tmp/chroma_db`) is stored in the container's temporary layer and destroyed when the container stops, restarts, or redeploys.
