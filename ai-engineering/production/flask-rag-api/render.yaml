@@ -7,6 +7,7 @@ services:
     rootDir: ai-engineering/production/flask-rag-api
     buildCommand: pip install .
     startCommand: gunicorn --bind 0.0.0.0:$PORT wsgi:app
+    healthCheckPath: /health
     envVars:
       - key: OPENAI_API_KEY
         sync: false

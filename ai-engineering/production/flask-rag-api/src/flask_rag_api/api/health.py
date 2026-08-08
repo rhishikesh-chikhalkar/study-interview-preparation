@@ -4,6 +4,7 @@ from flask import Blueprint, current_app, jsonify
 health_bp = Blueprint("health", __name__)
 
 
+@health_bp.route("/", methods=["GET"])
 @health_bp.route("/health", methods=["GET"])
 def health() -> Tuple[Any, int]:
     """Check the health status of the API service."""

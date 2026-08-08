@@ -36,6 +36,5 @@ COPY wsgi.py Procfile ./
 RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
 
-EXPOSE 5001
+CMD gunicorn --bind 0.0.0.0:${PORT:-5001} wsgi:app
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "wsgi:app"]

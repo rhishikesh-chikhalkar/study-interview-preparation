@@ -10,6 +10,13 @@ def test_health_endpoint(client):
     assert "collection_name" in data
 
 
+def test_root_endpoint(client):
+    response = client.get("/")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["status"] == "healthy"
+
+
 def test_ask_endpoint_missing_payload(client):
     response = client.post("/ask", json={})
     assert response.status_code == 400
