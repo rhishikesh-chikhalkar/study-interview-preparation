@@ -250,10 +250,7 @@ class RAGPipeline:
                 f"{context_text}"
             )
         else:
-            system_message = (
-                "You are a helpful, expert AI assistant. Note that no document context was matched in the vector database.\n"
-                "Answer the user's question accurately using your general knowledge, and briefly mention at the start that no specific document context was retrieved from the vector store."
-            )
+            system_message = "You are a helpful, expert AI assistant. Answer the user's question accurately and helpfully using your general knowledge."
 
         messages = [{"role": "system", "content": system_message}]
         messages.extend(self.conversation_history)
