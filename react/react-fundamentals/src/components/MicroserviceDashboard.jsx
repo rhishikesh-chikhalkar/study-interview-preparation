@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_URL ||
@@ -19,26 +19,15 @@ const MicroserviceDashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
 
-  // Run health check on load
-  useEffect(() => {
-    checkHealth();
-  }, []);
-
-  const checkHealth = async () => {
+  const performHealthCheck = useCallback(async () => {
     setFlaskStatus("checking");
     setGoStatus("checking");
     setError(null);
 
     try {
-      // 1. Check Flask Health
       const flaskRes = await fetch(`${API_BASE_URL}/health`);
-      if (flaskRes.ok) {
-        setFlaskStatus("online");
-      } else {
-        setFlaskStatus("degraded");
-      }
+      setFlaskStatus(flaskRes.ok ? "online" : "degraded");
 
-      // 2. Check Go Health via Flask proxy (/go-health)
       const goRes = await fetch(`${API_BASE_URL}/go-health`);
       if (goRes.ok) {
         const goData = await goRes.json();
@@ -52,7 +41,44 @@ const MicroserviceDashboard = () => {
       setGoStatus("offline");
       setError(`Network error connecting to Flask Gateway: ${err.message}`);
     }
-  };
+  }, []);
+
+  // Run initial health check on mount
+  useEffect(() => {
+    let ignore = false;
+
+    const initHealth = async () => {
+      try {
+        const flaskRes = await fetch(`${API_BASE_URL}/health`);
+        if (!ignore) {
+          setFlaskStatus(flaskRes.ok ? "online" : "degraded");
+        }
+
+        const goRes = await fetch(`${API_BASE_URL}/go-health`);
+        if (!ignore) {
+          if (goRes.ok) {
+            const goData = await goRes.json();
+            setGoStatus(goData.status === "healthy" ? "online" : "degraded");
+            setGoUrl(goData.go_service_url || "");
+          } else {
+            setGoStatus("offline");
+          }
+        }
+      } catch (err) {
+        if (!ignore) {
+          setFlaskStatus("offline");
+          setGoStatus("offline");
+          setError(`Network error connecting to Flask Gateway: ${err.message}`);
+        }
+      }
+    };
+
+    initHealth();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleAnalyze = async (e) => {
     e.preventDefault();
@@ -142,7 +168,7 @@ const MicroserviceDashboard = () => {
         </div>
 
         <button
-          onClick={checkHealth}
+          onClick={performHealthCheck}
           className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,8 +213,15 @@ const MicroserviceDashboard = () => {
           <p className="text-sm font-semibold text-slate-200 m-0">
             Python Backend BFF
           </p>
-          <p className="text-[11px] text-slate-500 m-0 mt-1 truncate">
-            {API_BASE_URL}
+          <p className="text-[11px] text-slate-400 m-0 mt-1 truncate">
+            <a
+              href={API_BASE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="underline hover:text-emerald-400 transition-colors"
+            >
+              {API_BASE_URL}
+            </a>
           </p>
         </div>
 
@@ -211,8 +244,15 @@ const MicroserviceDashboard = () => {
           <p className="text-sm font-semibold text-slate-200 m-0">
             High-Perf Engine
           </p>
-          <p className="text-[11px] text-slate-500 m-0 mt-1 truncate">
-            {goUrl || "https://render-go-service-txtm.onrender.com"}
+          <p className="text-[11px] text-slate-400 m-0 mt-1 truncate">
+            <a
+              href={goUrl || "https://render-go-service-txtm.onrender.com"}
+              target="_blank"
+              rel="noreferrer"
+              className="underline hover:text-sky-400 transition-colors"
+            >
+              {goUrl || "https://render-go-service-txtm.onrender.com"}
+            </a>
           </p>
         </div>
       </div>

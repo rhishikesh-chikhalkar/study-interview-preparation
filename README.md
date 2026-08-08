@@ -6,6 +6,18 @@ An interactive, dependency-based roadmap designed for **senior engineers (5+ YOE
 
 ---
 
+## 🌐 Live 3-Tier Distributed Microservices Showcase
+
+A fully integrated, cloud-deployed **3-Service Distributed Microservice System** built across **React 19, Python Flask 3.14, and Go 1.25** demonstrating Backend-For-Frontend (BFF) gateways, inter-service connection pooling, vector store RAG, and production PaaS deployment.
+
+| Microservice Tier | Tech Stack | Live Demo URL | Cloud Host | Documentation & Source Code |
+| :--- | :--- | :--- | :--- | :--- |
+| **Frontend Telemetry UI** | React 19 + Vite + Tailwind | [https://react-fundamentals-eight.vercel.app](https://react-fundamentals-eight.vercel.app) | Vercel Edge | [React README](react/react-fundamentals/README.md) |
+| **Flask API Gateway & RAG** | Python 3.14 + Flask + Gunicorn | [https://flask-rag-api-191y.onrender.com](https://flask-rag-api-191y.onrender.com) | Render PaaS | [Flask RAG API README](ai-engineering/.production/flask-rag-api/README.md) |
+| **Go Computation Engine** | Go 1.25 Stdlib + Docker | [https://render-go-service-txtm.onrender.com](https://render-go-service-txtm.onrender.com) | Render PaaS | [Go Microservice README](golang/.production/render-go-service/README.md) |
+
+---
+
 ## 📊 Roadmap Overview & Tracking
 
 | Phase        | Focus Area                                                            |      Status      | Progress           | Target Timeline |

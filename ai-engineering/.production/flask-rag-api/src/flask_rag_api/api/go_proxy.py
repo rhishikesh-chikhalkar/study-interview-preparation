@@ -6,8 +6,8 @@ Establishes inter-service HTTP pipeline: React SPA -> Flask Backend -> Go Micros
 import os
 from typing import Any
 
-from flask import Blueprint, jsonify, request
 import httpx
+from flask import Blueprint, jsonify, request
 
 from flask_rag_api.utils.errors import make_error_response
 from flask_rag_api.utils.logging import get_logger
@@ -58,7 +58,7 @@ def go_health() -> tuple[Any, int]:
             f"Go microservice returned status {resp.status_code}",
             resp.status_code,
         )
-    except Exception as err:
+    except Exception as err:  # noqa: BLE001
         logger.warning("Failed to reach Go microservice: %s", err)
         return (
             jsonify(
