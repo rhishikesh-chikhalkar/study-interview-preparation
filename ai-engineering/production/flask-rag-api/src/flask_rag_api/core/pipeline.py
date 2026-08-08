@@ -19,13 +19,19 @@ class RAGPipeline:
     def __init__(
         self, api_key: Optional[str] = None, persist_directory: Optional[str] = None
     ):
-        self.api_key = (
-            api_key or os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
-        )
+        def _clean(k: Optional[str]) -> Optional[str]:
+            if not k or "your_" in k or "api_key_here" in k:
+                return None
+            return k.strip()
+
+        passed_key = _clean(api_key)
+        openrouter_key = _clean(os.getenv("OPENROUTER_API_KEY"))
+        openai_key = _clean(os.getenv("OPENAI_API_KEY"))
+
+        self.api_key = passed_key or openrouter_key or openai_key
         self.base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("OPENROUTER_BASE_URL")
         if not self.base_url and (
-            os.getenv("OPENROUTER_API_KEY")
-            or (self.api_key and self.api_key.startswith("sk-or-v1-"))
+            openrouter_key or (self.api_key and self.api_key.startswith("sk-or-v1-"))
         ):
             self.base_url = "https://openrouter.ai/api/v1"
 
@@ -44,12 +50,14 @@ class RAGPipeline:
         self.ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
         self.embedding_model = os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")
 
-        default_model = (
-            "openai/gpt-4o-mini"
-            if (self.base_url and "openrouter" in self.base_url)
-            else "gpt-4o-mini"
-        )
-        self.model_name = os.getenv("LLM_MODEL", default_model)
+        model_env = os.getenv("LLM_MODEL")
+        if self.base_url and "openrouter" in self.base_url:
+            if not model_env or ":" in model_env:
+                self.model_name = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
+            else:
+                self.model_name = model_env
+        else:
+            self.model_name = model_env or "gpt-4o-mini"
 
         if persist_directory:
             self.chroma_client = chromadb.PersistentClient(path=persist_directory)
