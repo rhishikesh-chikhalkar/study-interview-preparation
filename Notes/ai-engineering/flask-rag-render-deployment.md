@@ -10,14 +10,15 @@ vector store persistence, configuring CORS, and performing API testing with Post
 
 ### Architecture Overview
 
-When deploying a Flask-based RAG service to Render, the architecture transitions from a single-threaded
-development server (`app.run()`) to a multi-process production WSGI server (`gunicorn`).
+When deploying an enterprise-grade Flask RAG service to Render, the architecture transitions from a single-threaded
+development server to a multi-process production WSGI server (`gunicorn`) running an **Application Factory Pattern**
+with Flask Blueprints.
 
-```
+```text
 +------------------+         HTTP POST /ask         +----------------------------------+
 |  Postman / React | -----------------------------> | Render Web Service (PaaS)        |
 |  Client          | <----------------------------- | - Gunicorn WSGI Master Process   |
-+------------------+         JSON Response          |   - Worker Processes (Flask App) |
++------------------+         JSON Response          |   - Worker Processes (wsgi:app)  |
                                                     +----------------------------------+
                                                                   |         |
                                                Query Vector Store |         | Generate Answer
@@ -28,17 +29,54 @@ development server (`app.run()`) to a multi-process production WSGI server (`gun
                                                            +------------+  +-----------------+
 ```
 
+### Production Package Structure
+
+The microservice is located at `ai-engineering/production/flask-rag-api/` and organized into a clean `src/` layout:
+
+```text
+ai-engineering/production/flask-rag-api/
+├── Dockerfile                   # Multi-stage production Docker container build
+├── .dockerignore                # Container context build exclusions
+├── .env.example                 # Environment variable template
+├── Procfile                     # Gunicorn startup file (`web: gunicorn wsgi:app`)
+├── pyproject.toml               # PEP 621 package dependencies & metadata (uv managed)
+├── README.md                    # Production architecture documentation
+├── render.yaml                  # Render Infrastructure Blueprint
+├── wsgi.py                      # Production WSGI entrypoint (`app = create_app()`)
+├── src/
+│   └── flask_rag_api/
+│       ├── __init__.py          # Application Factory (`create_app()`)
+│       ├── config.py            # Strongly-typed environment configuration (Dev, Test, Prod)
+│       ├── api/                 # Flask Blueprints
+│       │   ├── health.py        # Health & readiness check Blueprint
+│       │   └── rag.py           # RAG REST API endpoints Blueprint (/ask, /index, /clear_history)
+│       ├── core/                # RAG Engine core logic
+│       │   └── pipeline.py      # Vector search & OpenAI generation engine
+│       └── utils/               # Production utilities
+│           ├── errors.py        # Global exception handling
+│           └── logging.py       # Structured logging configuration
+└── tests/
+    ├── conftest.py              # Pytest client fixtures
+    ├── integration/
+    │   └── test_api_routes.py   # Blueprint integration tests
+    └── unit/
+        └── test_pipeline.py     # Core pipeline unit tests
+```
+
+---
+
 ### Core Deployment Components
 
 1. **Production WSGI Server (Gunicorn)**:
    - Flask's built-in development server is single-threaded and not designed for production traffic.
    - Gunicorn handles concurrent requests by spawning worker processes using a pre-fork model.
-   - Command: `gunicorn --bind 0.0.0.0:$PORT rag_api:app`
+   - Command: `gunicorn --bind 0.0.0.0:$PORT wsgi:app`
 
 2. **Environment Variable Injection**:
    - `OPENAI_API_KEY`: Authentication secret for OpenAI API endpoints.
    - `PORT`: Dynamic port assigned by Render container runtime.
    - `CHROMA_DB_DIR`: Directory path for vector store database files.
+   - `FLASK_DEBUG`: Set to `false` in production environments.
    - Secrets must **never** be committed to version control (`.gitignore` enforcement).
 
 3. **Vector Database Persistence on PaaS**:
@@ -59,21 +97,21 @@ development server (`app.run()`) to a multi-process production WSGI server (`gun
 1. **Repository Connection**: Connect GitHub repository in Render Dashboard.
 2. **Service Configuration**:
    - **Service Type**: Web Service
-   - **Root Directory**: `ai-engineering/rag`
+   - **Root Directory**: `ai-engineering/production/flask-rag-api`
    - **Runtime**: Python 3
-   - **Build Command**: `pip install -r requirements.txt` (or `uv pip install .`)
-   - **Start Command**: `gunicorn --bind 0.0.0.0:$PORT rag_api:app`
+   - **Build Command**: `pip install .` (or `uv pip install .`)
+   - **Start Command**: `gunicorn --bind 0.0.0.0:$PORT wsgi:app`
 3. **Environment Setup**: Add `OPENAI_API_KEY` under Service Settings -> Environment.
 
 #### Option B: Infrastructure Blueprint (`render.yaml`)
 ```yaml
 services:
   - type: web
-    name: flask-rag-api
+    name: flask-rag-api-prod
     runtime: python
-    rootDir: ai-engineering/rag
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT rag_api:app
+    rootDir: ai-engineering/production/flask-rag-api
+    buildCommand: pip install .
+    startCommand: gunicorn --bind 0.0.0.0:$PORT wsgi:app
     envVars:
       - key: OPENAI_API_KEY
         sync: false
@@ -148,16 +186,16 @@ services:
 
 ## 2. Interview Questions & Answers (5 YOE IT Professional Level)
 
-### Question 1 (Conceptual): Production WSGI Architecture
-**Q**: Why is Flask's built-in server unsuited for production deployments on platforms like Render, and how does Gunicorn solve this problem?
+### Question 1 (Conceptual): Production WSGI Architecture & Application Factory
+**Q**: Why is Flask's built-in server unsuited for production deployments on platforms like Render, and how does combining Gunicorn with the Application Factory pattern (`create_app()`) solve this problem?
 
 **A**:
 Flask's built-in development server (Werkzeug) is single-threaded and process-single by default. It processes incoming HTTP requests sequentially; if one request triggers a high-latency LLM call or vector search (e.g., 3 seconds), all subsequent requests are blocked. Furthermore, Werkzeug lacks robust worker process management, graceful restarts, request buffering, and resource recycling.
 
-Gunicorn (Green Unicorn) is a WSGI HTTP server implementing a pre-fork worker model:
-1. A central master process manages worker processes (sync workers, gevent, or gthread).
-2. The master monitors process health and automatically replaces workers that crash or hit memory limits.
-3. Multiple worker processes run in parallel across available CPU cores, enabling concurrent request handling and non-blocking I/O.
+Combining Gunicorn with the Application Factory pattern (`create_app()`) solves this by:
+1. **Multi-Process Concurrency**: Gunicorn master process forks multiple worker processes, enabling concurrent processing of incoming HTTP requests across available CPU cores.
+2. **Clean Instantiation**: The Application Factory (`create_app()`) instantiates app state, extensions, and blueprints dynamically per worker process, avoiding global state leaks and allowing separate configurations for Dev, Testing, and Production (`TestingConfig`, `ProductionConfig`).
+3. **WSGI Standard**: Entrypoints like `wsgi.py` expose `app = create_app()`, satisfying WSGI servers without running `app.run()` dev loops.
 
 *Interviewer Follow-up*: "How would you determine the optimal number of Gunicorn workers for an LLM API service?"
 *Answer*: The standard formula `(2 * CPU cores) + 1` applies to CPU-bound workloads. However, RAG API workloads are heavily I/O-bound (waiting on external vector databases and OpenAI HTTP requests). For I/O-bound workloads, using asynchronous worker types like `gevent` or threaded workers (`--worker-class gthread --threads 4`) yields higher throughput per unit of memory compared to adding extra process workers.
@@ -165,7 +203,7 @@ Gunicorn (Green Unicorn) is a WSGI HTTP server implementing a pre-fork worker mo
 ---
 
 ### Question 2 (Practical / Scenario): Ephemeral Disks & Vector DB State Persistence
-**Q**: You deployed a Flask RAG API using local ChromaDB storage to Render. Users report that after every code deployment or service restart, previously indexed PDF knowledge disappears. What is the root cause and how would you resolve it?
+**Q**: You deployed a Flask RAG API located at `ai-engineering/production/flask-rag-api` using local ChromaDB storage to Render. Users report that after every code deployment or service restart, previously indexed PDF knowledge disappears. What is the root cause and how would you resolve it?
 
 **A**:
 **Root Cause**: Render Web Services run inside ephemeral Docker containers. Unless a persistent disk volume is explicitly attached, any data written to the local filesystem (such as ChromaDB files inside `./_tmp/chroma_db`) is stored in the container's temporary layer and destroyed when the container stops, restarts, or redeploys.
@@ -189,17 +227,18 @@ Gunicorn (Green Unicorn) is a WSGI HTTP server implementing a pre-fork worker mo
 3. **CI/CD**: Use GitHub Actions Secrets for automated test runners.
 
 **Runtime Health Verification**:
-Expose a `/health` endpoint that checks for secret presence without exposing the secret value:
+Expose a `/health` endpoint in a Flask Blueprint that checks for secret presence without exposing the secret value:
 ```python
-@app.route("/health", methods=["GET"])
+@health_bp.route("/health", methods=["GET"])
 def health():
+    pipeline = getattr(current_app, "rag_pipeline", None)
     return jsonify({
         "status": "healthy",
-        "openai_configured": bool(os.getenv("OPENAI_API_KEY")),
+        "openai_configured": bool(pipeline and pipeline.openai_client),
     }), 200
 ```
 
-*Interviewer Follow-up*: "What happens if an developer accidentally commits an API key to GitHub?"
+*Interviewer Follow-up*: "What happens if a developer accidentally commits an API key to GitHub?"
 *Answer*: The key must be immediately revoked in the OpenAI dashboard. Tools like GitGuardian or `trufflehog` should be integrated into pre-commit hooks and CI pipelines to detect and reject commits containing secret signatures before they enter the repository.
 
 ---
@@ -215,7 +254,7 @@ def health():
    - Client polls `/status/<task_id>` or receives push notifications via WebSockets.
 
 2. **Gunicorn Timeout Configuration**:
-   - Increase worker timeout: `gunicorn --timeout 120 --bind 0.0.0.0:$PORT rag_api:app`
+   - Increase worker timeout: `gunicorn --timeout 120 --bind 0.0.0.0:$PORT wsgi:app`
 
 3. **Cold Start & Health Check Warmup**:
    - Configure a Render health check path (`/health`) to keep the service initialized.
