@@ -150,3 +150,54 @@ with (
 ):
     ...
 ```
+
+---
+
+## 6. Flask RAG API Render Deployment: Hardcoded Port Binding & Connection Refusal
+
+### Problem
+Deploying the Flask RAG microservice to Render failed container port detection (triggering
+repeated deployment restarts), and querying `/ask` returned:
+`[Mock Answer - API Error: [Errno 111] Connection refused]` alongside empty retrieved chunks.
+
+### Root Cause
+1. **Hardcoded Port Binding**: `Dockerfile` used JSON array exec form `CMD ["gunicorn", "--bind", "0.0.0.0:5001", "wsgi:app"]`, which prevented expansion of Render's dynamic `$PORT` environment variable (`PORT=10000`).
+2. **Unreachable Local Fallback**: Missing API keys on Render caused the pipeline to fall back to calling local Ollama (`http://localhost:11434`), which is not present in cloud container environments, raising `[Errno 111] Connection refused`.
+3. **Empty Vector Store Fallback**: An unpopulated ChromaDB collection (`retrieved_chunks: []`) triggered strict prompt rules returning *"The context does not contain enough information to answer."*
+
+### Solution
+1. **Dynamic Shell CMD**: Updated `Dockerfile` CMD to shell format:
+```dockerfile
+CMD gunicorn --bind 0.0.0.0:${PORT:-5001} wsgi:app
+```
+2. **Native OpenRouter Support**: Configured `RAGPipeline` to detect OpenRouter keys (`sk-or-v1-...`) and automatically route base URLs to `https://openrouter.ai/api/v1`.
+3. **Smart Dual-Mode System Prompt**: Refactored prompt logic in `generate_answer()`:
+```python
+if retrieved_chunks:
+    system_message = (
+        "Answer the user's question based strictly on the provided context below:\n\n"
+        f"### Context:\n{context_text}"
+    )
+else:
+    system_message = (
+        "Note that no document context was matched in the vector database.\n"
+        "Answer the question using general knowledge while briefly mentioning that "
+        "no specific document context was retrieved."
+    )
+```
+4. **Root Health Check Route**: Bound `@health_bp.route("/", methods=["GET"])` alongside `/health` and set `healthCheckPath: /health` in `render.yaml` to prevent 404 logs during PaaS health probing.
+
+---
+
+## 7. Cloud PaaS Ephemeral Disks & Vector DB State Persistence
+
+### Problem
+PDF document embeddings indexed in local ChromaDB storage (`./_tmp/chroma_db`) vanished on every code push or service restart on Render.
+
+### Root Cause
+Render Web Service instances use ephemeral Docker filesystem containers. Any disk writes to local folders are destroyed when instances restart or redeploy.
+
+### Solution
+1. **PaaS Disk Attachment**: Configured environment variable `CHROMA_DB_DIR=/data/chroma_db` backed by a Render Persistent Disk volume.
+2. **Stateless Microservice Decoupling**: Documented cloud migration path to managed vector stores (Qdrant Cloud, Pinecone, or PostgreSQL `pgvector`), decoupling vector state from Flask web containers to allow horizontal scaling across Gunicorn workers.
+

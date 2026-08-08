@@ -228,19 +228,24 @@ class RAGPipeline:
         self, query: str, retrieved_chunks: List[Dict[str, Any]]
     ) -> str:
         """Generates response using OpenAI gpt-4o-mini or Ollama."""
-        context_text = "\n\n---\n\n".join(
-            [
-                f"[Source: {c['metadata'].get('source')} Page: {c['metadata'].get('page')}]\n{c['text']}"
-                for c in retrieved_chunks
-            ]
-        )
-
-        system_message = (
-            "You are a helpful, expert AI assistant. Answer the user's question based strictly on the provided context below.\n"
-            "If the answer cannot be found in the context, state that the context does not contain enough information to answer.\n\n"
-            "### Context:\n"
-            f"{context_text}"
-        )
+        if retrieved_chunks:
+            context_text = "\n\n---\n\n".join(
+                [
+                    f"[Source: {c['metadata'].get('source')} Page: {c['metadata'].get('page')}]\n{c['text']}"
+                    for c in retrieved_chunks
+                ]
+            )
+            system_message = (
+                "You are a helpful, expert AI assistant. Answer the user's question based strictly on the provided context below.\n"
+                "If the answer cannot be found in the context, state that the context does not contain enough information to answer.\n\n"
+                "### Context:\n"
+                f"{context_text}"
+            )
+        else:
+            system_message = (
+                "You are a helpful, expert AI assistant. Note that no document context was matched in the vector database.\n"
+                "Answer the user's question accurately using your general knowledge, and briefly mention at the start that no specific document context was retrieved from the vector store."
+            )
 
         messages = [{"role": "system", "content": system_message}]
         messages.extend(self.conversation_history)
