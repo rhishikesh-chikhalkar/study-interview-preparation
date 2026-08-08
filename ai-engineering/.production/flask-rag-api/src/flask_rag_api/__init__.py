@@ -2,7 +2,7 @@ from typing import Any
 
 from flask import Flask, request
 
-from flask_rag_api.api import health_bp, rag_bp
+from flask_rag_api.api import go_proxy_bp, health_bp, rag_bp
 from flask_rag_api.config import Config, get_config
 from flask_rag_api.core.pipeline import RAGPipeline
 from flask_rag_api.utils.errors import register_error_handlers
@@ -66,6 +66,7 @@ def create_app(config_class: type[Config] | None = None) -> Flask:
     # Register Blueprints
     app.register_blueprint(health_bp)
     app.register_blueprint(rag_bp)
+    app.register_blueprint(go_proxy_bp)
 
     # Register Error Handlers
     register_error_handlers(app)

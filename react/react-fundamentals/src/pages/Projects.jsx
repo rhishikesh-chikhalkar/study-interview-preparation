@@ -45,6 +45,13 @@ const Projects = () => {
       tech: ["React", "Tailwind CSS", "Hooks"],
       path: "/projects/navbar",
     },
+    {
+      id: 7,
+      title: "3-Service Architecture",
+      description: "End-to-end microservices telemetry: React SPA -> Flask BFF API Gateway -> Go High-Performance Microservice.",
+      tech: ["React", "Flask", "Go", "BFF Microservices"],
+      path: "/projects/microservices",
+    },
   ];
 
   return (

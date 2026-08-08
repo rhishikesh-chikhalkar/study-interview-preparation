@@ -31,6 +31,7 @@ func main() {
 	taskSvc := service.NewMemoryTaskService()
 	healthH := handler.NewHealthHandler()
 	taskH := handler.NewTaskHandler(taskSvc)
+	analyzeH := handler.NewAnalyzeHandler()
 
 	// Configure standard HTTP router
 	mux := http.NewServeMux()
@@ -38,6 +39,7 @@ func main() {
 	mux.HandleFunc("/readyz", healthH.Readiness)
 	mux.HandleFunc("/api/v1/tasks", taskH.HandleTasks)
 	mux.HandleFunc("/api/v1/tasks/", taskH.HandleTaskByID)
+	mux.HandleFunc("/api/v1/analyze", analyzeH.HandleAnalyze)
 
 	// Chain production middleware (Recovery -> CORS -> Auth -> Logging)
 	handlerChain := middleware.Chain(

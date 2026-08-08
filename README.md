@@ -23,7 +23,7 @@ An interactive, dependency-based roadmap designed for **senior engineers (5+ YOE
 | **Phase 9**  | [AI Engineering (Highest ROI)](#-phase-9--ai-engineering-highest-roi) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 31-34 |
 | **Phase 10**  | [Data Engineering](#-phase-10--data-engineering) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 35-36 |
 | **Phase 11**  | [Modern APIs](#-phase-11--modern-apis) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 37-38 |
-| **Phase 12**  | [Additional Languages](#-phase-12--additional-languages) | 🏃 _In Progress_ | `[░░░░░░░░░░] 9%` | Week 39-42 |
+| **Phase 12**  | [Additional Languages](#-phase-12--additional-languages) | 🏃 _In Progress_ | `[█░░░░░░░░░] 18%` | Week 39-42 |
 | **Phase 13**  | [Frontend](#-phase-13--frontend) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 43-45 |
 | **Phase 14**  | [Security & Compliance](#-phase-14--security--compliance) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 46-48 |
 
@@ -874,10 +874,10 @@ An interactive, dependency-based roadmap designed for **senior engineers (5+ YOE
 
 #### 🐹 Go (Golang) — Senior Depth
 
-- [ ] **Core Language**: Pointers, structs, interfaces (implicit implementation), embedding, error handling patterns (`errors.Is`, `errors.As`, `fmt.Errorf` wrapping)
+- [x] **Core Language**: Pointers, structs, interfaces (implicit implementation), embedding, error handling patterns (`errors.Is`, `errors.As`, `fmt.Errorf` wrapping)
 - [x] **Concurrency**: 🎯 Goroutines (lightweight threads), channels (buffered vs unbuffered), `select` statement, `context.Context` (cancellation, deadlines, values), `sync.WaitGroup`, `sync.Mutex`, `sync.Once`
 - [ ] **Advanced Patterns**: Worker pools, fan-out/fan-in, pipeline pattern, rate limiting, graceful shutdown, generics (Go 1.18+)
-- [ ] **Networking**: `net/http` package, HTTP middleware pattern, `http.Handler` interface, chi/gin/echo frameworks, gRPC implementations
+- [x] **Networking**: `net/http` package, HTTP middleware pattern, `http.Handler` interface, chi/gin/echo frameworks, gRPC implementations
 - [ ] **Performance**: `pprof` (CPU, memory, goroutine profiling), benchmarking (`testing.B`), escape analysis, memory alignment
 - [x] **Testing**: Table-driven tests, `testing.T`, `testify`, `httptest`, mock generation (`gomock`, `mockery`), build tags for integration tests
 

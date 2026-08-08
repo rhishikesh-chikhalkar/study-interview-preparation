@@ -9,6 +9,7 @@ import Counter from "./components/Counter";
 import SearchFilter from "./components/SearchFilter";
 import AiAssistant from "./components/AiAssistant";
 import NavbarDemo from "./components/NavbarDemo";
+import MicroserviceDashboard from "./components/MicroserviceDashboard";
 
 const App = () => {
   return (
@@ -27,6 +28,7 @@ const App = () => {
             <Route path="/projects/search-filter" element={<SearchFilter />} />
             <Route path="/projects/ai-assistant" element={<AiAssistant />} />
             <Route path="/projects/navbar" element={<NavbarDemo />} />
+            <Route path="/projects/microservices" element={<MicroserviceDashboard />} />
           </Routes>
         </main>
 
