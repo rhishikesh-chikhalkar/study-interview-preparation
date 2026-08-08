@@ -52,3 +52,17 @@ def test_clear_history_endpoint(client):
     assert response.status_code == 200
     data = response.get_json()
     assert data["status"] == "success"
+
+
+def test_cors_options_preflight(client):
+    response = client.options("/ask")
+    assert response.status_code == 200
+    assert response.headers.get("Access-Control-Allow-Origin") == "*"
+    assert "POST" in response.headers.get("Access-Control-Allow-Methods", "")
+    assert response.headers.get("Access-Control-Max-Age") == "86400"
+
+
+def test_cors_headers_on_response(client):
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.headers.get("Access-Control-Allow-Origin") == "*"

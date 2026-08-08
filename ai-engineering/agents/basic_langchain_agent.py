@@ -13,6 +13,7 @@ from typing import Any
 
 from langchain_classic.agents import AgentExecutor, create_tool_calling_agent
 from langchain_community.tools import DuckDuckGoSearchRun
+from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools import tool
@@ -162,13 +163,63 @@ def database_lookup(user_id: int) -> str:
     return f"No user record found for User ID {user_id}."
 
 
-web_search = DuckDuckGoSearchRun(
-    name="web_search",
-    description=(
-        "Search the web using DuckDuckGo. Use this tool when you do not know the answer "
-        "or need current real-world information, news, or external facts."
-    ),
-)
+class AgentLoadingStatusHandler(BaseCallbackHandler):
+    """Callback handler to track and report agent execution and tool loading states."""
+
+    def __init__(self) -> None:
+        self.current_state: str = "IDLE"
+        self.logs: list[str] = []
+
+    def _update_state(self, state: str, message: str = "") -> None:
+        self.current_state = state
+        entry = f"[{state}] {message}".strip() if message else f"[{state}]"
+        self.logs.append(entry)
+
+    def on_chain_start(
+        self, serialized: dict[str, Any], inputs: dict[str, Any], **kwargs: Any
+    ) -> None:
+        self._update_state("THINKING", "Initializing agent reasoning process")
+
+    def on_tool_start(
+        self, serialized: dict[str, Any], input_str: str, **kwargs: Any
+    ) -> None:
+        tool_name = serialized.get("name", "unknown_tool")
+        self._update_state(
+            "LOADING", f"Executing tool '{tool_name}' with input: {input_str}"
+        )
+
+    def on_tool_end(self, output: str, **kwargs: Any) -> None:
+        self._update_state("COMPLETED", "Tool execution finished successfully")
+
+    def on_tool_error(self, error: BaseException, **kwargs: Any) -> None:
+        self._update_state("ERROR", f"Tool encountered an error: {error}")
+
+    def on_chain_end(self, outputs: dict[str, Any], **kwargs: Any) -> None:
+        self._update_state("FINISHED", "Agent execution finished")
+
+
+@tool
+def web_search(query: str) -> str:
+    """Search the web using DuckDuckGo.
+
+    Use this tool when you do not know the answer or need current real-world information,
+    news, or external facts.
+
+    Args:
+        query: The search query string or keywords.
+
+    Returns:
+        Search result snippets, or a fallback error message if search fails.
+    """
+
+    try:
+        ddg = DuckDuckGoSearchRun()
+        return ddg.run(query)
+    except Exception as err:
+        return (
+            f"[Fallback] Web search is currently unavailable for query '{query}'. "
+            f"Reason: {err}. Please proceed using internal knowledge."
+        )
 
 
 def get_agent_tools() -> list[Any]:
@@ -180,6 +231,7 @@ def get_agent_tools() -> list[Any]:
 def create_basic_agent(
     model: BaseChatModel | None = None,
     tools: list[Any] | None = None,
+    callbacks: list[BaseCallbackHandler] | None = None,
     verbose: bool = True,
 ) -> AgentExecutor:
     """Create and return a tool-calling LangChain AgentExecutor.
@@ -187,6 +239,7 @@ def create_basic_agent(
     Args:
         model: Language model instance (defaults to get_configured_llm()).
         tools: List of tools available to the agent (defaults to get_agent_tools()).
+        callbacks: Optional list of callback handlers for loading states/monitoring.
         verbose: Whether to log intermediate reasoning steps and tool execution.
 
     Returns:
@@ -207,7 +260,8 @@ def create_basic_agent(
                 "Carefully inspect user requests and choose the appropriate tool when "
                 "calculation, word counting, weather lookup, user database queries, or web "
                 "search is requested. Search the web when you do not know the answer or need "
-                "current information. If no tool is needed, respond directly.",
+                "current information. If web search tool returns a fallback message, answer "
+                "gracefully based on your base knowledge. If no tool is needed, respond directly.",
             ),
             ("human", "{input}"),
             MessagesPlaceholder(variable_name="agent_scratchpad"),
@@ -215,7 +269,13 @@ def create_basic_agent(
     )
 
     agent = create_tool_calling_agent(model, tools, prompt)
-    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=verbose)
+    agent_executor = AgentExecutor(
+        agent=agent,
+        tools=tools,
+        verbose=verbose,
+        callbacks=callbacks,
+        handle_parsing_errors=True,
+    )
     return agent_executor
 
 
@@ -240,8 +300,12 @@ def run_demo_queries(agent_executor: AgentExecutor) -> None:
     for idx, query in enumerate(sample_queries, start=1):
         print(f"[{idx}] User Query: '{query}'")
         try:
-            response = agent_executor.invoke({"input": query})
-            print(f"    Agent Output: {response['output']}\n")
+            handler = AgentLoadingStatusHandler()
+            response = agent_executor.invoke(
+                {"input": query}, config={"callbacks": [handler]}
+            )
+            print(f"    Agent Output: {response['output']}")
+            print(f"    Loading State Trace: {handler.logs}\n")
         except Exception as err:
             print(f"    Execution Note: {err}\n")
 

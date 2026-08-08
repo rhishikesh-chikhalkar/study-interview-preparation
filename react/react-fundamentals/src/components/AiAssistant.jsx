@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 
-const API_BASE_URL = "http://localhost:5001";
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "https://flask-rag-api-191y.onrender.com"
+).replace(/\/$/, "");
 
 const AiAssistant = () => {
   const [messages, setMessages] = useState([

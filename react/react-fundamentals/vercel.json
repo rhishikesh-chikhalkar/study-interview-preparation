@@ -42,6 +42,14 @@
   ],
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://flask-rag-api-191y.onrender.com/:path*"
+    },
+    {
+      "source": "/go-api/:path*",
+      "destination": "https://render-go-service-txtm.onrender.com/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

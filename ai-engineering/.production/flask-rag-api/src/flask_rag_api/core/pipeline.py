@@ -1,12 +1,12 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import chromadb
 import httpx
 import pypdf
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from openai import OpenAI  # noqa: F401
+from openai import OpenAI
 
 from flask_rag_api.utils.logging import get_logger
 
@@ -17,9 +17,9 @@ class RAGPipeline:
     """Production Retrieval-Augmented Generation (RAG) pipeline core engine."""
 
     def __init__(
-        self, api_key: Optional[str] = None, persist_directory: Optional[str] = None
+        self, api_key: str | None = None, persist_directory: str | None = None
     ):
-        def _clean(k: Optional[str]) -> Optional[str]:
+        def _clean(k: str | None) -> str | None:
             if not k or "your_" in k or "api_key_here" in k:
                 return None
             return k.strip()
@@ -36,7 +36,7 @@ class RAGPipeline:
             self.base_url = "https://openrouter.ai/api/v1"
 
         if self.api_key:
-            kwargs: Dict[str, Any] = {"api_key": self.api_key}
+            kwargs: dict[str, Any] = {"api_key": self.api_key}
             if self.base_url:
                 kwargs["base_url"] = self.base_url
                 kwargs["default_headers"] = {
@@ -64,13 +64,13 @@ class RAGPipeline:
         else:
             self.chroma_client = chromadb.EphemeralClient()
 
-        self.conversation_history: List[Dict[str, str]] = []
+        self.conversation_history: list[dict[str, str]] = []
 
     def clear_history(self) -> None:
         """Clears the conversation history."""
         self.conversation_history = []
 
-    def get_history(self) -> List[Dict[str, str]]:
+    def get_history(self) -> list[dict[str, str]]:
         """Returns the conversation history."""
         return self.conversation_history
 
@@ -81,7 +81,7 @@ class RAGPipeline:
         if len(self.conversation_history) > 6:
             self.conversation_history = self.conversation_history[-6:]
 
-    def load_pdf(self, pdf_path: str) -> List[Dict[str, Any]]:
+    def load_pdf(self, pdf_path: str) -> list[dict[str, Any]]:
         """Loads PDF document page-by-page."""
         path = Path(pdf_path)
         if not path.exists():
@@ -98,10 +98,10 @@ class RAGPipeline:
 
     def chunk_documents(
         self,
-        pages_data: List[Dict[str, Any]],
+        pages_data: list[dict[str, Any]],
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Splits page text into smaller semantic chunks."""
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size, chunk_overlap=chunk_overlap
@@ -124,7 +124,7 @@ class RAGPipeline:
                 )
         return chunks
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         """Generates vector embedding via OpenAI or Ollama fallback."""
         is_mock = (
             "mock" in type(self.openai_client).__module__
@@ -138,7 +138,7 @@ class RAGPipeline:
                     model="text-embedding-3-small", input=text
                 )
                 return response.data[0].embedding
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(
                     "OpenAI embedding generation failed: %s. Using fallback.", e
                 )
@@ -159,7 +159,7 @@ class RAGPipeline:
             response.raise_for_status()
             data = response.json()
             return data["embedding"]
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 "Ollama embedding generation failed: %s. Using mock vector.", e
             )
@@ -174,7 +174,7 @@ class RAGPipeline:
         return self.chroma_client.get_or_create_collection(name=collection_name)
 
     def populate_vector_store(
-        self, chunks: List[Dict[str, Any]], collection: chromadb.Collection
+        self, chunks: list[dict[str, Any]], collection: chromadb.Collection
     ) -> None:
         """Embeds text chunks and inserts into ChromaDB."""
         if not chunks:
@@ -202,7 +202,7 @@ class RAGPipeline:
 
     def query_vector_store(
         self, query: str, collection: chromadb.Collection, k: int = 3
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Retrieves top-K relevant document chunks."""
         query_embedding = self.get_embedding(query)
         results = collection.query(
@@ -233,7 +233,7 @@ class RAGPipeline:
         return retrieved_chunks
 
     def generate_answer(
-        self, query: str, retrieved_chunks: List[Dict[str, Any]]
+        self, query: str, retrieved_chunks: list[dict[str, Any]]
     ) -> str:
         """Generates response using OpenAI gpt-4o-mini or Ollama."""
         if retrieved_chunks:
@@ -266,7 +266,7 @@ class RAGPipeline:
                 answer = response.choices[0].message.content or ""
                 self._update_history(query, answer)
                 return answer
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning("OpenAI chat completion failed: %s. Using fallback.", e)
 
         try:
@@ -284,7 +284,7 @@ class RAGPipeline:
             answer = data["message"]["content"]
             self._update_history(query, answer)
             return answer
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning("Ollama chat completion failed: %s. Using mock response.", e)
             if not self.openai_client:
                 answer = (

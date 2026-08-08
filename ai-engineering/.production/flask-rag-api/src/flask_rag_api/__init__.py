@@ -1,5 +1,7 @@
-from typing import Any, Optional, Type
+from typing import Any
+
 from flask import Flask, request
+
 from flask_rag_api.api import health_bp, rag_bp
 from flask_rag_api.config import Config, get_config
 from flask_rag_api.core.pipeline import RAGPipeline
@@ -9,7 +11,7 @@ from flask_rag_api.utils.logging import get_logger, setup_logging
 logger = get_logger(__name__)
 
 
-def create_app(config_class: Optional[Type[Config]] = None) -> Flask:
+def create_app(config_class: type[Config] | None = None) -> Flask:
     """Application Factory for Flask RAG API microservice."""
     setup_logging()
 
@@ -40,7 +42,7 @@ def create_app(config_class: Optional[Type[Config]] = None) -> Flask:
 
     # CORS Handlers
     @app.before_request
-    def handle_options() -> Optional[Any]:
+    def handle_options() -> Any | None:
         if request.method == "OPTIONS":
             response = app.make_default_options_response()
             response.headers["Access-Control-Allow-Origin"] = "*"
@@ -50,6 +52,7 @@ def create_app(config_class: Optional[Type[Config]] = None) -> Flask:
             response.headers["Access-Control-Allow-Methods"] = (
                 "GET,PUT,POST,DELETE,OPTIONS"
             )
+            response.headers["Access-Control-Max-Age"] = "86400"
             return response
         return None
 

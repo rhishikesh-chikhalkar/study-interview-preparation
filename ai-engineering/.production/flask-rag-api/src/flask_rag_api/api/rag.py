@@ -1,7 +1,9 @@
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Any
+
 from flask import Blueprint, current_app, jsonify, request
 from werkzeug.utils import secure_filename
+
 from flask_rag_api.utils.errors import make_error_response
 from flask_rag_api.utils.logging import get_logger
 
@@ -11,7 +13,7 @@ rag_bp = Blueprint("rag", __name__)
 
 
 @rag_bp.route("/index", methods=["POST"])
-def index() -> Tuple[Any, int]:
+def index() -> tuple[Any, int]:
     """Index a PDF document into the vector database (supports file upload or JSON path)."""
     uploaded_file = request.files.get("file") or request.files.get("pdf")
     temp_file_created = False
@@ -73,18 +75,18 @@ def index() -> Tuple[Any, int]:
             200,
         )
     except Exception as e:
-        logger.error("Failed to index PDF '%s': %s", pdf_path_str, e, exc_info=True)
-        return make_error_response(f"Failed to index PDF: {str(e)}", 500)
+        logger.exception("Failed to index PDF '%s'", pdf_path_str)
+        return make_error_response(f"Failed to index PDF: {e!s}", 500)
     finally:
         if temp_file_created and pdf_path.exists():
             try:
                 pdf_path.unlink()
-            except Exception:
-                pass
+            except OSError as err:
+                logger.warning("Failed to remove temp file '%s': %s", pdf_path, err)
 
 
 @rag_bp.route("/ask", methods=["POST"])
-def ask() -> Tuple[Any, int]:
+def ask() -> tuple[Any, int]:
     """Query the RAG pipeline."""
     data = request.get_json() or {}
     question = data.get("question", "").strip() or data.get("query", "").strip()
@@ -108,12 +110,12 @@ def ask() -> Tuple[Any, int]:
             }
         ), 200
     except Exception as e:
-        logger.error("Failed to generate answer for question: %s", e, exc_info=True)
-        return make_error_response(f"Failed to generate answer: {str(e)}", 500)
+        logger.exception("Failed to generate answer for question")
+        return make_error_response(f"Failed to generate answer: {e!s}", 500)
 
 
 @rag_bp.route("/clear_history", methods=["POST"])
-def clear_history() -> Tuple[Any, int]:
+def clear_history() -> tuple[Any, int]:
     """Clear the pipeline's conversation history."""
     pipeline = current_app.rag_pipeline
     pipeline.clear_history()

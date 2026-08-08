@@ -12,6 +12,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from basic_langchain_agent import (
+    AgentLoadingStatusHandler,
     calculator,
     create_basic_agent,
     database_lookup,
@@ -152,3 +153,55 @@ def test_get_configured_llm_factory():
 
     model = get_configured_llm(provider="ollama", model_name="qwen3:1.7b")
     assert isinstance(model, BaseChatModel)
+
+
+def test_web_search_tool_failure_fallback():
+    """Test web_search tool gracefully returns a fallback message on exception."""
+
+    with patch.object(
+        DuckDuckGoSearchRun,
+        "run",
+        side_effect=Exception("Rate limit or connection timeout"),
+    ):
+        res = web_search.invoke({"query": "Latest AI news 2026"})
+        assert "[Fallback] Web search is currently unavailable" in res
+        assert "Rate limit or connection timeout" in res
+        assert "Latest AI news 2026" in res
+
+
+def test_agent_loading_status_handler():
+    """Verify AgentLoadingStatusHandler tracks state transitions correctly."""
+
+    handler = AgentLoadingStatusHandler()
+    assert handler.current_state == "IDLE"
+
+    handler.on_chain_start({}, {})
+    assert handler.current_state == "THINKING"
+
+    handler.on_tool_start({"name": "web_search"}, "AI news")
+    assert handler.current_state == "LOADING"
+    assert "Executing tool 'web_search'" in handler.logs[-1]
+
+    handler.on_tool_end("Search results string")
+    assert handler.current_state == "COMPLETED"
+
+    handler.on_tool_error(RuntimeError("Tool failed"))
+    assert handler.current_state == "ERROR"
+
+    handler.on_chain_end({})
+    assert handler.current_state == "FINISHED"
+
+
+def test_create_basic_agent_with_callbacks():
+    """Verify create_basic_agent configures callbacks and handles parsing errors."""
+
+    mock_model = MagicMock(spec=BaseChatModel)
+    mock_model._combine_llm_outputs = MagicMock(return_value={})
+    handler = AgentLoadingStatusHandler()
+
+    agent_executor = create_basic_agent(
+        model=mock_model, callbacks=[handler], verbose=False
+    )
+    assert isinstance(agent_executor, AgentExecutor)
+    assert agent_executor.handle_parsing_errors is True
+    assert handler in agent_executor.callbacks
