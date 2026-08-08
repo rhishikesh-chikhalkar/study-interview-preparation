@@ -93,3 +93,45 @@ Run automated pytest assertions for both the pipeline integration and API endpoi
 ```bash
 uv run pytest python/tests/test_rag_pipeline.py python/tests/test_rag_api.py
 ```
+
+---
+
+## Deploying to Render
+
+1. **Connect GitHub Repository**: Log in to [Render](https://render.com), click **New +** -> **Web Service**, and connect this GitHub repository.
+2. **Set Root Directory & Commands**:
+   - **Root Directory**: `ai-engineering/rag`
+   - **Environment**: `Python 3`
+   - **Build Command**: `pip install -e ../..` or `pip install gunicorn flask openai python-dotenv chromadb langchain-text-splitters pypdf httpx`
+   - **Start Command**: `gunicorn --bind 0.0.0.0:$PORT rag_api:app`
+3. **Configure Environment Variables**:
+   Under service settings -> **Environment**:
+   - `OPENAI_API_KEY`: `sk-proj-...`
+   - `CHROMA_DB_DIR`: `./_tmp/chroma_db`
+   - `CHROMA_COLLECTION`: `pdf_rag_collection_openai`
+4. **Alternative via Infrastructure Blueprint (`render.yaml`)**:
+   - Choose **Blueprints** on Render and point to `ai-engineering/rag/render.yaml`.
+
+---
+
+## Testing `/ask` Endpoint with Postman
+
+1. Open **Postman** and create a new **POST** request.
+2. Set the URL to your deployed Render service endpoint: `https://<your-app-name>.onrender.com/ask` (or `http://localhost:5001/ask` for local testing).
+3. Under **Headers**, set `Content-Type`: `application/json`.
+4. Under **Body**, select **raw** -> **JSON** and send:
+```json
+{
+  "question": "What is RAG and how does retrieval-augmented generation work?"
+}
+```
+5. Response expected (`200 OK`):
+```json
+{
+  "answer": "Retrieval-Augmented Generation (RAG) is a technique...",
+  "question": "What is RAG and how does retrieval-augmented generation work?",
+  "retrieved_chunks": [...],
+  "conversation_history": [...]
+}
+```
+

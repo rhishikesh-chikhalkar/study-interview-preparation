@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: flask-rag-api-prod
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: ai-engineering/production/flask-rag-api
+    buildCommand: pip install .
+    startCommand: gunicorn --bind 0.0.0.0:$PORT wsgi:app
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: CHROMA_DB_DIR
+        value: ./_tmp/chroma_db
+      - key: CHROMA_COLLECTION
+        value: pdf_rag_collection_openai
+      - key: FLASK_DEBUG
+        value: "false"

@@ -10,6 +10,7 @@ dependencies = [
     "uvicorn[standard]",
     "boto3",
     "Flask",
+    "gunicorn>=23.0.0",
     "python-dotenv",
     "sqlfluff",
     "pymongo==4.17.0",
@@ -30,5 +31,6 @@ dependencies = [
 dev = ["mpmath>=1.4.1", "ruff>=0.15.22", "pytest"]
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = [".", "ai-engineering/production/flask-rag-api/src"]
+
 
