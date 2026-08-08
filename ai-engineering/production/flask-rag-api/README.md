@@ -76,6 +76,6 @@ uv run pytest
 
 1. Connect your repository on [Render](https://render.com).
 2. Set **Root Directory** to `ai-engineering/production/flask-rag-api`.
-3. Set **Build Command** to `pip install .`.
+3. Set **Build Command** to `pip install uv && uv pip install --system .`.
 4. Set **Start Command** to `gunicorn --bind 0.0.0.0:$PORT wsgi:app`.
 5. Add `OPENAI_API_KEY` in Render Service Environment Settings.

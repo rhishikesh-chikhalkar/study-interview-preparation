@@ -110,7 +110,7 @@ services:
     name: flask-rag-api-prod
     runtime: python
     rootDir: ai-engineering/production/flask-rag-api
-    buildCommand: pip install .
+    buildCommand: pip install uv && uv pip install --system .
     startCommand: gunicorn --bind 0.0.0.0:$PORT wsgi:app
     envVars:
       - key: OPENAI_API_KEY
