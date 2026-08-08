@@ -19,15 +19,37 @@ class RAGPipeline:
     def __init__(
         self, api_key: Optional[str] = None, persist_directory: Optional[str] = None
     ):
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        self.api_key = (
+            api_key or os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
+        )
+        self.base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("OPENROUTER_BASE_URL")
+        if not self.base_url and (
+            os.getenv("OPENROUTER_API_KEY")
+            or (self.api_key and self.api_key.startswith("sk-or-v1-"))
+        ):
+            self.base_url = "https://openrouter.ai/api/v1"
+
         if self.api_key:
-            self.openai_client = OpenAI(api_key=self.api_key)
+            kwargs: Dict[str, Any] = {"api_key": self.api_key}
+            if self.base_url:
+                kwargs["base_url"] = self.base_url
+                kwargs["default_headers"] = {
+                    "HTTP-Referer": "https://study-interview-preparation.onrender.com",
+                    "X-Title": "Flask RAG API",
+                }
+            self.openai_client = OpenAI(**kwargs)
         else:
             self.openai_client = None
 
         self.ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
         self.embedding_model = os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")
-        self.model_name = os.getenv("LLM_MODEL", "qwen3:1.7b")
+
+        default_model = (
+            "openai/gpt-4o-mini"
+            if (self.base_url and "openrouter" in self.base_url)
+            else "gpt-4o-mini"
+        )
+        self.model_name = os.getenv("LLM_MODEL", default_model)
 
         if persist_directory:
             self.chroma_client = chromadb.PersistentClient(path=persist_directory)
@@ -227,7 +249,7 @@ class RAGPipeline:
         if self.openai_client:
             try:
                 response = self.openai_client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model=self.model_name,
                     messages=messages,
                     temperature=0.0,
                 )
@@ -254,17 +276,24 @@ class RAGPipeline:
             return answer
         except Exception as e:
             logger.warning("Ollama chat completion failed: %s. Using mock response.", e)
-            chunks_summary = "\n".join(
-                [
-                    "  * Page {}: {}...".format(
-                        c["metadata"].get("page"), c["text"].replace("\n", " ")[:100]
-                    )
-                    for c in retrieved_chunks
-                ]
-            )
-            answer = (
-                f"[Mock Answer - API Error: {e}]\n"
-                f"Simulating response for query: '{query}' based on retrieved chunks:\n{chunks_summary}"
-            )
+            if not self.openai_client:
+                answer = (
+                    "[Configuration Error]: OPENAI_API_KEY is missing or invalid on Render. "
+                    "Please set OPENAI_API_KEY in Render Dashboard -> Service Settings -> Environment."
+                )
+            else:
+                chunks_summary = "\n".join(
+                    [
+                        "  * Page {}: {}...".format(
+                            c["metadata"].get("page"),
+                            c["text"].replace("\n", " ")[:100],
+                        )
+                        for c in retrieved_chunks
+                    ]
+                )
+                answer = (
+                    f"[Mock Answer - API Error: {e}]\n"
+                    f"Simulating response for query: '{query}' based on retrieved chunks:\n{chunks_summary}"
+                )
             self._update_history(query, answer)
             return answer
