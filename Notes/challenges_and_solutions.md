@@ -201,3 +201,73 @@ Render Web Service instances use ephemeral Docker filesystem containers. Any dis
 1. **PaaS Disk Attachment**: Configured environment variable `CHROMA_DB_DIR=/data/chroma_db` backed by a Render Persistent Disk volume.
 2. **Stateless Microservice Decoupling**: Documented cloud migration path to managed vector stores (Qdrant Cloud, Pinecone, or PostgreSQL `pgvector`), decoupling vector state from Flask web containers to allow horizontal scaling across Gunicorn workers.
 
+---
+
+## 8. Django Reverse Accessor Clashes (`fields.E304`) on Custom User Model Registration
+
+### Problem
+Executing `python manage.py makemigrations` after introducing a custom user model (`core.User`)
+inheriting from `PermissionsMixin` failed with system check error `fields.E304`:
+```traceback
+ERRORS:
+auth.User.groups: (fields.E304) Reverse accessor for
+  'auth.User.groups' clashes with accessor for 'core.User.groups'.
+        HINT: Add or change related_name argument.
+auth.User.user_permissions: (fields.E304) Reverse accessor for
+  'auth.User.user_permissions' clashes with accessor for 'core.User.user_permissions'.
+```
+
+### Root Cause
+In `settings.py`, the user model setting was declared with a typo:
+`AUTH_USER_MDOEL = "core.User"` (misspelled `MDOEL` instead of `MODEL`).
+
+Because of the typo, Django did not recognize `AUTH_USER_MODEL` and fell back to default
+`auth.User`. When Django loaded the app registry, both `auth.User` and `core.User` were
+registered as active models. Because both models inherit `PermissionsMixin`, their reverse
+accessors (`groups` and `user_permissions`) collided on `Group` and `Permission` models.
+
+### Solution
+Corrected the setting name typo in `settings.py`:
+```python
+# Before (incorrect typo):
+AUTH_USER_MDOEL = "core.User"
+
+# After (fixed):
+AUTH_USER_MODEL = "core.User"
+```
+Fixing the variable name allowed Django to swap out `auth.User` completely for `core.User`,
+resolving the reverse accessor name collision.
+
+---
+
+## 9. Django `InconsistentMigrationHistory` on Mid-Development Custom User Model
+
+### Problem
+Executing `python manage.py makemigrations` or `migrate` failed with:
+```traceback
+django.db.migrations.exceptions.InconsistentMigrationHistory:
+  Migration admin.0001_initial is applied before its dependency
+  core.0001_initial on database 'default'.
+```
+
+### Root Cause
+Before `AUTH_USER_MODEL = 'core.User'` was active in `settings.py`, initial migrations
+(`admin.0001_initial`, `auth.0001_initial`) were executed against the PostgreSQL database,
+recording standard `auth.User` migrations in the `django_migrations` table.
+
+When `core.0001_initial` was generated as the custom `AUTH_USER_MODEL`, Django detected that
+`admin.0001_initial` (which depends on `AUTH_USER_MODEL`) was already applied in database history
+before `core.0001_initial` was run.
+
+### Solution
+In local Docker development environment:
+1. Stop containers and purge stale database volume:
+   ```bash
+   docker-compose down -v
+   ```
+2. Re-run database migrations against fresh volume:
+   ```bash
+   docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py migrate"
+   ```
+This allowed `core.0001_initial` to be applied first before `admin.0001_initial`.
+
