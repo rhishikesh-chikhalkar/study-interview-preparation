@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'leetcode/**'
+      - 'LeetCode/**'
       - '.github/workflows/sync-leetcode.yml'
   workflow_dispatch:
 
@@ -27,6 +28,7 @@ jobs:
       - name: Checkout Private Repository
         uses: actions/checkout@v4
         with:
+          path: private-repo
           fetch-depth: 0
 
       - name: Checkout Target Public Repository
@@ -38,13 +40,21 @@ jobs:
 
       - name: Sync Files to Public Repository
         run: |
-          # Sync leetcode directory contents to public repo root, excluding artifacts/caches
+          # Detect directory casing if present (leetcode or LeetCode)
+          SOURCE_DIR="private-repo/leetcode"
+          if [ ! -d "$SOURCE_DIR" ]; then
+            SOURCE_DIR="private-repo/LeetCode"
+          fi
+
+          echo "Syncing from $SOURCE_DIR to public-repo/"
+
+          # Sync source contents to public repo root, excluding artifacts/caches
           rsync -av --delete \
             --exclude='.git' \
             --exclude='__pycache__' \
             --exclude='.pytest_cache' \
             --exclude='.DS_Store' \
-            leetcode/ public-repo/
+            "${SOURCE_DIR}/" public-repo/
 
           cd public-repo
           git config user.name "github-actions[bot]"
