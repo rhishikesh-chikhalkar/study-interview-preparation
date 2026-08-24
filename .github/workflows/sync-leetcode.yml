@@ -48,7 +48,7 @@ jobs:
 
           echo "Syncing from $SOURCE_DIR to public-repo/leetcode/"
 
-          # Clean up any legacy solution files and folders from public-repo root
+          # Clean up legacy solution files from public-repo root
           find public-repo -maxdepth 1 -name '[0-9]*.py' -delete
           rm -rf public-repo/tests
 
@@ -66,18 +66,20 @@ jobs:
           # Ensure a helpful README exists in public-repo root
           if [ ! -f public-repo/README.md ] || [ $(wc -l < public-repo/README.md) -le 3 ]; then
             cat << 'EOF' > public-repo/README.md
-# LeetCode Solutions
+          # LeetCode Solutions
 
-A curated collection of LeetCode problem solutions with detailed explanations, time/space complexity analysis, and comprehensive automated test suites.
+          A curated collection of LeetCode problem solutions with detailed explanations, time/space complexity analysis, and comprehensive automated test suites.
 
-## Repository Structure
+          ## Repository Structure
 
-- [`leetcode/`](./leetcode) - Solution implementations in Python
-- [`leetcode/tests/`](./leetcode/tests) - Pytest unit tests for all solutions
+          - [\`leetcode/\`](./leetcode) - Solution implementations in Python
+          - [\`leetcode/tests/\`](./leetcode/tests) - Pytest unit tests for all solutions
 
----
-*Automatically synchronized from development workspace.*
-EOF
+          ---
+          *Automatically synchronized from development workspace.*
+          EOF
+            # Strip leading 10-space indentation from generated README.md
+            sed -i 's/^          //' public-repo/README.md
           fi
 
           cd public-repo
