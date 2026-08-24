@@ -14,6 +14,16 @@ jobs:
     name: Sync LeetCode Directory
     runs-on: ubuntu-latest
     steps:
+      - name: Validate Secret Configuration
+        env:
+          SYNC_TOKEN: ${{ secrets.LEETCODE_SYNC_TOKEN }}
+        run: |
+          if [ -z "$SYNC_TOKEN" ]; then
+            echo "::error::Secret 'LEETCODE_SYNC_TOKEN' is not configured in repository Settings -> Secrets and variables -> Actions."
+            echo "Please create a GitHub PAT with repo write access and add it as 'LEETCODE_SYNC_TOKEN'."
+            exit 1
+          fi
+
       - name: Checkout Private Repository
         uses: actions/checkout@v4
         with:
