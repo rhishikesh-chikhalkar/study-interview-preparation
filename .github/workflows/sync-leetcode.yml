@@ -46,15 +46,39 @@ jobs:
             SOURCE_DIR="private-repo/LeetCode"
           fi
 
-          echo "Syncing from $SOURCE_DIR to public-repo/"
+          echo "Syncing from $SOURCE_DIR to public-repo/leetcode/"
 
-          # Sync source contents to public repo root, excluding artifacts/caches
+          # Clean up any legacy solution files and folders from public-repo root
+          find public-repo -maxdepth 1 -name '[0-9]*.py' -delete
+          rm -rf public-repo/tests
+
+          # Create public-repo/leetcode destination folder
+          mkdir -p public-repo/leetcode
+
+          # Sync source contents into public-repo/leetcode/
           rsync -av --delete \
             --exclude='.git' \
             --exclude='__pycache__' \
             --exclude='.pytest_cache' \
             --exclude='.DS_Store' \
-            "${SOURCE_DIR}/" public-repo/
+            "${SOURCE_DIR}/" public-repo/leetcode/
+
+          # Ensure a helpful README exists in public-repo root
+          if [ ! -f public-repo/README.md ] || [ $(wc -l < public-repo/README.md) -le 3 ]; then
+            cat << 'EOF' > public-repo/README.md
+# LeetCode Solutions
+
+A curated collection of LeetCode problem solutions with detailed explanations, time/space complexity analysis, and comprehensive automated test suites.
+
+## Repository Structure
+
+- [`leetcode/`](./leetcode) - Solution implementations in Python
+- [`leetcode/tests/`](./leetcode/tests) - Pytest unit tests for all solutions
+
+---
+*Automatically synchronized from development workspace.*
+EOF
+          fi
 
           cd public-repo
           git config user.name "github-actions[bot]"
@@ -64,6 +88,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to sync."
           else
-            git commit -m "sync: update leetcode solutions [skip ci]"
+            git commit -m "sync: place solutions in leetcode/ subfolder [skip ci]"
             git push origin main
           fi
