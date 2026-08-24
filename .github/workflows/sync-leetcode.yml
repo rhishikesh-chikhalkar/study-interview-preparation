@@ -1,0 +1,49 @@
+name: Sync LeetCode to Public Repo
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'leetcode/**'
+      - '.github/workflows/sync-leetcode.yml'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Sync LeetCode Directory
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Private Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout Target Public Repository
+        uses: actions/checkout@v4
+        with:
+          repository: rhishikesh-chikhalkar/leetcode-solutions
+          token: ${{ secrets.LEETCODE_SYNC_TOKEN }}
+          path: public-repo
+
+      - name: Sync Files to Public Repository
+        run: |
+          # Sync leetcode directory contents to public repo root, excluding artifacts/caches
+          rsync -av --delete \
+            --exclude='.git' \
+            --exclude='__pycache__' \
+            --exclude='.pytest_cache' \
+            --exclude='.DS_Store' \
+            leetcode/ public-repo/
+
+          cd public-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to sync."
+          else
+            git commit -m "sync: update leetcode solutions [skip ci]"
+            git push origin main
+          fi
