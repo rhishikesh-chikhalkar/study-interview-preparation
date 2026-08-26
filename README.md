@@ -23,7 +23,7 @@ A fully integrated, cloud-deployed **3-Service Distributed Microservice System**
 | Phase        | Focus Area                                                            |      Status      | Progress           | Target Timeline |
 | :----------- | :-------------------------------------------------------------------- | :--------------: | :----------------- | :-------------: |
 | **Phase -1**  | [Interview Meta-Skills & Behavioral](#-phase--1--interview-meta-skills--behavioral-leadership) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 0 (ongoing) |
-| **Phase 0**  | [CS Fundamentals (DSA)](#-phase-0--computer-science-fundamentals) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 1-4 |
+| **Phase 0**  | [CS Fundamentals (DSA)](#-phase-0--computer-science-fundamentals) | 🏃 _In Progress_ | `[░░░░░░░░░░] 2%` | Week 1-4 |
 | **Phase 1**  | [Python Mastery](#-phase-1--python-mastery) | 🏃 _In Progress_ | `[░░░░░░░░░░] 2%` | Week 5-7 |
 | **Phase 2**  | [Data & SQL](#-phase-2--data--sql) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 8-10 |
 | **Phase 3**  | [Backend Development](#-phase-3--backend-development) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 11-14 |
@@ -131,7 +131,7 @@ A fully integrated, cloud-deployed **3-Service Distributed Microservice System**
 - [ ] **Binary Search**: 🎯 On sorted arrays, on answer space (minimize maximum, maximize minimum), rotated sorted arrays
 - [ ] **Recursion & Backtracking**: 🎯 Permutations, combinations, subsets, N-Queens, Sudoku solver, constraint propagation
 - [ ] **Greedy Algorithms**: Interval scheduling, activity selection, Huffman coding, jump game, greedy proof techniques
-- [ ] **Merge Intervals Pattern**: 🎯 Interval merging, insertion, intersection — extremely common in interviews
+- [x] **Merge Intervals Pattern**: 🎯 Interval merging, insertion, intersection — extremely common in interviews
 - [ ] **Matrix Traversal**: Spiral order, diagonal traversal, island problems, flood fill
 
 #### 🧩 Dynamic Programming (Senior Depth)
