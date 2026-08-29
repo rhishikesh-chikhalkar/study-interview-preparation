@@ -83,13 +83,19 @@ jobs:
           fi
 
           cd public-repo
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Extract author and commit message from source repository
+          AUTHOR_NAME=$(git -C ../private-repo log -1 --format='%an')
+          AUTHOR_EMAIL=$(git -C ../private-repo log -1 --format='%ae')
+          COMMIT_MSG=$(git -C ../private-repo log -1 --format='%s')
+
+          git config user.name "${AUTHOR_NAME:-rhishikesh-chikhalkar}"
+          git config user.email "${AUTHOR_EMAIL:-rhishichikhalkar21@gmail.com}"
 
           git add -A
           if git diff --staged --quiet; then
             echo "No changes to sync."
           else
-            git commit -m "sync: place solutions in leetcode/ subfolder [skip ci]"
+            git commit -m "sync: ${COMMIT_MSG:-update leetcode solutions} [skip ci]"
             git push origin main
           fi
