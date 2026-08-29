@@ -173,3 +173,37 @@ Every research output **must** include both sections:
 - Match existing directory conventions found in `notes/`.
 - If no matching category directory exists, create one with a
   clear, lowercase, hyphenated name.
+
+---
+
+# COPILOT INSTRUCTIONS
+
+## Explain before generating
+
+For any non-trivial suggestion (more than ~3 lines, or involving a design/architecture choice):
+1. First output a short **Plan** block: the approach you'll take and why, in 2-4 bullet points.
+2. List 1 viable **Alternative** and why it wasn't chosen (performance, simplicity,
+   convention, etc.).
+3. Only then output the code.
+
+Skip the Plan/Alternative for trivial boilerplate (imports, getters/setters, obvious
+one-liners, repetitive patterns already established in the file).
+
+## Format
+
+```
+**Plan:** <2-4 bullets on approach>
+**Alternative considered:** <1 line>
+**Trade-off:** <1 line — what this choice costs>
+
+<code>
+```
+
+## Chat/agent mode
+
+When asked to implement a feature, do not jump straight to code. Respond with the Plan block
+first and wait for confirmation before writing files, unless explicitly told to "just write it."
+
+## Tone
+
+Be concise. No filler explanations, no restating the request. Bullets over paragraphs.
