@@ -23,7 +23,7 @@ A fully integrated, cloud-deployed **3-Service Distributed Microservice System**
 | Phase        | Focus Area                                                            |      Status      | Progress           | Target Timeline |
 | :----------- | :-------------------------------------------------------------------- | :--------------: | :----------------- | :-------------: |
 | **Phase -1**  | [Interview Meta-Skills & Behavioral](#-phase--1--interview-meta-skills--behavioral-leadership) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 0 (ongoing) |
-| **Phase 0**  | [CS Fundamentals (DSA)](#-phase-0--computer-science-fundamentals) | 🏃 _In Progress_ | `[░░░░░░░░░░] 2%` | Week 1-4 |
+| **Phase 0**  | [CS Fundamentals (DSA)](#-phase-0--computer-science-fundamentals) | 🏃 _In Progress_ | `[░░░░░░░░░░] 4%` | Week 1-4 |
 | **Phase 1**  | [Python Mastery](#-phase-1--python-mastery) | 🏃 _In Progress_ | `[░░░░░░░░░░] 2%` | Week 5-7 |
 | **Phase 2**  | [Data & SQL](#-phase-2--data--sql) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 8-10 |
 | **Phase 3**  | [Backend Development](#-phase-3--backend-development) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 11-14 |
@@ -128,7 +128,7 @@ A fully integrated, cloud-deployed **3-Service Distributed Microservice System**
 
 - [ ] **Sliding Window**: 🎯 Fixed size, variable size, with hash map counting, minimum window substring
 - [ ] **Two Pointers**: 🎯 Opposite direction (sorted arrays), same direction (fast/slow), three-sum pattern
-- [ ] **Binary Search**: 🎯 On sorted arrays, on answer space (minimize maximum, maximize minimum), rotated sorted arrays
+- [x] **Binary Search**: 🎯 On sorted arrays, on answer space (minimize maximum, maximize minimum), rotated sorted arrays
 - [ ] **Recursion & Backtracking**: 🎯 Permutations, combinations, subsets, N-Queens, Sudoku solver, constraint propagation
 - [ ] **Greedy Algorithms**: Interval scheduling, activity selection, Huffman coding, jump game, greedy proof techniques
 - [x] **Merge Intervals Pattern**: 🎯 Interval merging, insertion, intersection — extremely common in interviews
