@@ -35,11 +35,12 @@ from typing import List
 class Solution:
     def maxProfit(self, prices: List[int]) -> int:
         """
-        Groups the current single pass approach.
+        Greedy single pass approach tracking the minimum buying price.
 
         Time Complexity: O(N) where N is the length of prices.
         Space Complexity: O(1) auxiliary space.
         """
+
         min_price = float("inf")
         max_profit = 0
         for price in prices:
@@ -56,6 +57,7 @@ class Solution:
         Time Complexity: O(N) where N is the length of prices.
         Space Complexity: O(1) auxiliary space.
         """
+
         left = 0  # Buy day
         right = 1  # Sell day
         max_profit = 0
@@ -75,6 +77,7 @@ class Solution:
         Time Complexity: O(N) where N is the length of prices.
         Space Complexity: O(1) auxiliary space.
         """
+
         max_profit = 0
         current_profit = 0
         for i in range(1, len(prices)):
