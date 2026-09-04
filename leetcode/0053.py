@@ -25,7 +25,8 @@ Constraints:
 1 <= nums.length <= 10^5
 -10^4 <= nums[i] <= 10^4
 
-Follow up: If you have figured out the O(n) solution, try coding another solution using the divide and conquer approach, which is more subtle.
+Follow up: If you have figured out the O(n) solution, try coding another solution
+using the divide and conquer approach, which is more subtle.
 """
 
 from typing import List, Tuple
@@ -43,6 +44,7 @@ class Solution:
         Time Complexity: O(N) where N is the length of nums.
         Space Complexity: O(1) auxiliary space.
         """
+
         current_sum = max_sum = nums[0]
 
         for num in nums[1:]:
@@ -91,6 +93,7 @@ class Solution:
         Time Complexity: O(N) where N is the length of nums.
         Space Complexity: O(N) to store the DP array.
         """
+
         n = len(nums)
         dp = [0] * n
         dp[0] = nums[0]
@@ -107,6 +110,7 @@ class Solution:
         Time Complexity: O(N)
         Space Complexity: O(1) auxiliary (excluding output subarray).
         """
+
         max_sum = nums[0]
         current_sum = nums[0]
 
