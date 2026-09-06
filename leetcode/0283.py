@@ -2,7 +2,8 @@
 283. Move Zeroes
 Easy
 
-Given an integer array nums, move all 0's to the end of it while maintaining the relative order of the non-zero elements.
+Given an integer array nums, move all 0's to the end of it while maintaining the
+relative order of the non-zero elements.
 
 Note that you must do this in-place without making a copy of the array.
 
@@ -40,6 +41,7 @@ class Solution:
         Time Complexity: O(N) where N is the length of nums.
         Space Complexity: O(1) auxiliary space (in-place modification).
         """
+
         left = 0
         for right in range(len(nums)):
             if nums[right] != 0:
@@ -56,7 +58,8 @@ class Solution:
         Follow-up optimization: Minimizes total operations (writes).
 
         Pointers:
-          - left (slow pointer): Points to the leftmost zero waiting to be swapped with a non-zero element.
+          - left (slow pointer): Points to the leftmost zero waiting to be swapped with
+            a non-zero element.
           - right (fast pointer): Scans ahead looking for non-zero elements to move forward.
 
         Optimization ('if right != left'):
@@ -65,6 +68,7 @@ class Solution:
         Time Complexity: O(N) where N is the length of nums.
         Space Complexity: O(1) auxiliary space (in-place modification).
         """
+
         left = 0
         for right in range(len(nums)):
             if nums[right] != 0:
