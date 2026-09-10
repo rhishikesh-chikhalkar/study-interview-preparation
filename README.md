@@ -23,7 +23,7 @@ A fully integrated, cloud-deployed **3-Service Distributed Microservice System**
 | Phase        | Focus Area                                                            |      Status      | Progress           | Target Timeline |
 | :----------- | :-------------------------------------------------------------------- | :--------------: | :----------------- | :-------------: |
 | **Phase -1**  | [Interview Meta-Skills & Behavioral](#-phase--1--interview-meta-skills--behavioral-leadership) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 0 (ongoing) |
-| **Phase 0**  | [CS Fundamentals (DSA)](#-phase-0--computer-science-fundamentals) | 🏃 _In Progress_ | `[░░░░░░░░░░] 4%` | Week 1-4 |
+| **Phase 0**  | [CS Fundamentals (DSA)](#-phase-0--computer-science-fundamentals) | 🏃 _In Progress_ | `[░░░░░░░░░░] 6%` | Week 1-4 |
 | **Phase 1**  | [Python Mastery](#-phase-1--python-mastery) | 🏃 _In Progress_ | `[░░░░░░░░░░] 2%` | Week 5-7 |
 | **Phase 2**  | [Data & SQL](#-phase-2--data--sql) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 8-10 |
 | **Phase 3**  | [Backend Development](#-phase-3--backend-development) | ⏳ _Not Started_ | `[░░░░░░░░░░] 0%` | Week 11-14 |
@@ -107,7 +107,7 @@ A fully integrated, cloud-deployed **3-Service Distributed Microservice System**
 #### 🌲 Core Data Structures
 
 - [ ] **Arrays & Strings**: 🎯 Hash map mapping, sliding window, prefix sums, Kadane's algorithm, in-place manipulation
-- [ ] **Linked Lists**: Single, Double, Circular, 🎯 Fast/Slow pointers (cycle detection, middle finding), merge sorted lists
+- [x] **Linked Lists**: Single, Double, Circular, 🎯 Fast/Slow pointers (cycle detection, middle finding), merge sorted lists
 - [ ] **Stack & Queue**: 🎯 Monotonic stack (next greater element), Deque patterns, min-stack, stack-based parsing
 - [ ] **HashMap & HashSet**: Collision resolution (chaining vs open addressing), amortized O(1) operations, 🎯 custom hash functions
 - [ ] **Trees & BST**: 🎯 All traversals (BFS/DFS, pre/in/post-order, level-order), AVL rotations, Segment trees, Binary Indexed Trees (Fenwick), Red-Black tree concepts
